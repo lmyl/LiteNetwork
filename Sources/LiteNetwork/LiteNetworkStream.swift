@@ -58,7 +58,7 @@ public final class LiteNetworkStream: NSObject {
     
     private var underlayHasError = false
     
-    override init() {
+    public override init() {
         let opQueue = OperationQueue()
         opQueue.maxConcurrentOperationCount = 1
         self.sessionTaskDelegateQueue = opQueue

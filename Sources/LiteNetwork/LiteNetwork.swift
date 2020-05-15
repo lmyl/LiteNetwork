@@ -62,7 +62,7 @@ public final class LiteNetwork: NSObject {
     
     private var underlayIsCancel = false
     
-    override init() {
+    public override init() {
         let opQueue = OperationQueue()
         opQueue.maxConcurrentOperationCount = 1 //设置并行操作数为1
         self.sessionTaskDelegateQueue = opQueue
