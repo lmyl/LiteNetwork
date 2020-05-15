@@ -41,7 +41,26 @@ final class LiteNetwork: NSObject {
     
     private var sessionToken = LiteNetworkToken()
     
-    private var isCancel = false
+    private let cancelFlagRWQueue = DispatchQueue(label: "LiteNetwork.rwCancel.token.com", attributes: .concurrent)
+    
+    private var isCancel: Bool {
+        get {
+            var result = false
+            self.cancelFlagRWQueue.sync {
+                [unowned self] in
+                result = self.underlayIsCancel
+            }
+            return result
+        }
+        set(newValue) {
+            self.cancelFlagRWQueue.async(flags: .barrier, execute: {
+                [unowned self] in
+                self.underlayIsCancel = newValue
+            })
+        }
+    }
+    
+    private var underlayIsCancel = false
     
     override init() {
         let opQueue = OperationQueue()
@@ -122,8 +141,8 @@ extension LiteNetwork: URLSessionTaskDelegate {
                     for processData in sourceBag.processData {
                         processData(httpResponse, data)
                     }
-                    for processDownloadComplete in sourceBag.processRequestSuccess {
-                        processDownloadComplete(httpResponse)
+                    for processRequestSuccess in sourceBag.processRequestSuccess {
+                        processRequestSuccess(httpResponse)
                     }
                 } else {
                     isRetry = isRetryWhenErrorFor(taskID: taskID, error: LiteNetworkError.NoResponse)
@@ -530,11 +549,6 @@ extension LiteNetwork {
         return self
     }
     
-    func setIsDiscretionary(for new: Bool) -> Self {
-        configureManager.updateIsDiscretionary(for: new)
-        return self
-    }
-    
     func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForRequest(for: new)
         return self
@@ -542,11 +556,6 @@ extension LiteNetwork {
     
     func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForRequest(for: new)
-        return self
-    }
-    
-    func setSessionSendsLaunchEvents(for new: Bool) -> Self {
-        configureManager.updateSessionSendsLaunchEvents(for: new)
         return self
     }
     

@@ -11,7 +11,7 @@ import Foundation
 final class LiteNetworkStream: NSObject {
     typealias ProcessAuthenticationChallenge = (URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
     typealias DataCommunicateComplteteHandler = (Data?, Error?) -> ()
-    typealias NormalCompleteHandler = (Error?) -> ()
+    typealias WriteDataCompleteHandler = (Error?) -> ()
     typealias ReadDataCompleteHandler = (Data?, Bool, Error?) -> ()
     typealias StreamTaskCompleteHandler = (_ dueError: Bool, _ error: Error?) -> ()
     typealias StreamCloseCompleteHandler = (_ dueError: Bool) -> ()
@@ -37,7 +37,26 @@ final class LiteNetworkStream: NSObject {
     
     private var chainSourceBagsManager = LiteNetworkStreamChainSourceBagManager()
     
-    private var hasError = false
+    private var hasError: Bool {
+        get {
+            var result = false
+            self.errorFlagRWQueue.sync {
+                [unowned self] in
+                result = self.underlayHasError
+            }
+            return result
+        }
+        set(newValue) {
+            self.errorFlagRWQueue.async(flags: .barrier, execute: {
+                [unowned self] in
+                self.underlayHasError = newValue
+            })
+        }
+    }
+    
+    private var errorFlagRWQueue = DispatchQueue(label: "LiteNetworkStream.rwHasError.token.com", attributes: .concurrent)
+    
+    private var underlayHasError = false
     
     override init() {
         let opQueue = OperationQueue()
@@ -132,13 +151,13 @@ extension LiteNetworkStream {
                 return
             }
             if let error = error { // 出现错误时关闭读写流，提前返回
-                self.chainSourceBagsManager.removeAll()
                 self.hasError = true
+                operation.completeHandler(nil, error)
+                self.chainSourceBagsManager.removeAll()
                 streamTask.closeRead()
                 streamTask.closeWrite()
                 self.session.invalidateAndCancel() // 取消所有未完成task，然后使session无效
                 self.streamTask = nil
-                operation.completeHandler(nil, error)
                 return
             }
             streamTask.readData(ofMinLength: operation.min, maxLength: operation.max, timeout: operation.timeout, completionHandler: {
@@ -147,13 +166,13 @@ extension LiteNetworkStream {
                     return
                 }
                 if let error = error {
-                    self.chainSourceBagsManager.removeAll()
                     self.hasError = true
+                    operation.completeHandler(nil, error)
+                    self.chainSourceBagsManager.removeAll()
                     streamTask.closeRead()
                     streamTask.closeWrite()
                     self.session.invalidateAndCancel()
                     self.streamTask = nil
-                    operation.completeHandler(nil, error)
                     return
                 }
                 if let data = data {
@@ -163,13 +182,13 @@ extension LiteNetworkStream {
                         self.executeChainSourceBag(for: first)
                     }
                 } else {
-                    self.chainSourceBagsManager.removeAll()
                     self.hasError = true
+                    operation.completeHandler(nil, LiteNetworkError.NoDataReadFormStream)
+                    self.chainSourceBagsManager.removeAll()
                     streamTask.closeRead()
                     streamTask.closeWrite()
                     self.session.invalidateAndCancel()
                     self.streamTask = nil
-                    operation.completeHandler(nil, LiteNetworkError.NoDataReadFormStream)
                 }
             })
         })
@@ -191,13 +210,13 @@ extension LiteNetworkStream {
                 return
             }
             if let error = error {
-                self.chainSourceBagsManager.removeAll()
                 self.hasError = true
+                operation.completeHandler(error)
+                self.chainSourceBagsManager.removeAll()
                 streamTask.closeRead()
                 streamTask.closeWrite()
                 self.session.invalidateAndCancel()
                 self.streamTask = nil
-                operation.completeHandler(error)
                 return
             }
             operation.completeHandler(nil)
@@ -224,13 +243,13 @@ extension LiteNetworkStream {
                 return
             }
             if let error = error {
-                self.chainSourceBagsManager.removeAll()
                 self.hasError = true
+                operation.completeHandler(nil, eof, error)
+                self.chainSourceBagsManager.removeAll()
                 streamTask.closeRead()
                 streamTask.closeWrite()
                 self.session.invalidateAndCancel()
                 self.streamTask = nil
-                operation.completeHandler(nil, eof, error)
                 return
             }
             if let data = data {
@@ -240,13 +259,13 @@ extension LiteNetworkStream {
                     self.executeChainSourceBag(for: first)
                 }
             } else {
-                self.chainSourceBagsManager.removeAll()
                 self.hasError = true
+                operation.completeHandler(nil, eof, LiteNetworkError.NoDataReadFormStream)
+                self.chainSourceBagsManager.removeAll()
                 streamTask.closeRead()
                 streamTask.closeWrite()
                 self.session.invalidateAndCancel()
                 self.streamTask = nil
-                operation.completeHandler(nil, eof, LiteNetworkError.NoDataReadFormStream)
                 return
             }
             
@@ -326,11 +345,6 @@ extension LiteNetworkStream {
         return self
     }
     
-    func setIsDiscretionary(for new: Bool) -> Self {
-        configureManager.updateIsDiscretionary(for: new)
-        return self
-    }
-    
     /// 设置资源请求的允许超时间隔
     /// - Parameter new: 目标时长
     func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
@@ -342,13 +356,6 @@ extension LiteNetworkStream {
     /// - Parameter new: 目标时长
     func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForRequest(for: new)
-        return self
-    }
-    
-    /// 设置传输完成之后是否应该恢复或者在后台启动应用
-    /// - Parameter new: Bool
-    func setSessionSendsLaunchEvents(for new: Bool) -> Self {
-        configureManager.updateSessionSendsLaunchEvents(for: new)
         return self
     }
     
@@ -451,7 +458,7 @@ extension LiteNetworkStream: LiteNetworkStreamTokenDelegate {
         }
     }
     
-    func writeData(input: Data, timeout: TimeInterval? = nil, completionHandler: @escaping NormalCompleteHandler) {
+    func writeData(input: Data, timeout: TimeInterval? = nil, completionHandler: @escaping WriteDataCompleteHandler) {
         let timeout = timeout ?? session.configuration.timeoutIntervalForRequest
         let sourceBag = LiteNetworkStreamChainSourceBag(writeData: input, timeout: timeout, completeHandler: completionHandler)
         if chainSourceBagsManager.isEmpty() {

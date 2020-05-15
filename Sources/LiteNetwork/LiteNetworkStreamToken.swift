@@ -23,7 +23,7 @@ protocol LiteNetworkStreamTokenDelegate: LiteNetworkTokenDelegate {
     ///   - input: 要写入的数据
     ///   - timeout: 允许超时间隔
     ///   - completionHandler: 完成处理
-    func writeData(input: Data, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.NormalCompleteHandler)
+    func writeData(input: Data, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler)
     
     /// 读取数据
     /// - Parameters:
@@ -54,7 +54,7 @@ final class LiteNetworkStreamToken {
         delegate.simpleCommunicateWithSever(input: input, minLength: minLength, maxLength: maxLength, timeout: timeout, completionHandler: completionHandler)
     }
     
-    func writeData(input: Data, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.NormalCompleteHandler) {
+    func writeData(input: Data, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler) {
         guard let delegate = self.delegate else {
             return
         }

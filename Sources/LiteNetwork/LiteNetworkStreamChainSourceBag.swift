@@ -19,7 +19,7 @@ final class LiteNetworkStreamChainSourceBag {
     }
     
     let type: ChainSourceBagType
-    var writeOperation: (input: Data, timout: TimeInterval, completeHandler: LiteNetworkStream.NormalCompleteHandler)?
+    var writeOperation: (input: Data, timout: TimeInterval, completeHandler: LiteNetworkStream.WriteDataCompleteHandler)?
     var readOperation: (min: Int, max: Int, timeout: TimeInterval, completeHandler: LiteNetworkStream.ReadDataCompleteHandler)?
     var communicateOperation: (input: Data, min: Int, max: Int, timeout: TimeInterval, completeHandler: LiteNetworkStream.DataCommunicateComplteteHandler)?
     
@@ -28,7 +28,7 @@ final class LiteNetworkStreamChainSourceBag {
     ///   - writeData: 要写入的数据
     ///   - timeout: 允许超时间隔
     ///   - completeHandler: 完成回调
-    init(writeData: Data, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.NormalCompleteHandler) {
+    init(writeData: Data, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler) {
         type = .Write
         writeOperation = (writeData, timeout, completeHandler)
     }

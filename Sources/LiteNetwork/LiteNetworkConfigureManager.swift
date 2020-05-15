@@ -50,7 +50,9 @@ extension LiteNetworkConfigureManager {
         case .Background(let identifier):
             newConfigure = URLSessionConfiguration.background(withIdentifier: identifier)
             newConfigure.isDiscretionary = isDiscretionary
+            #if !os(macOS)
             newConfigure.sessionSendsLaunchEvents = sessionSendsLaunchEvents
+            #endif
         }
         
         newConfigure.httpAdditionalHeaders = httpAdditionalHeaders
