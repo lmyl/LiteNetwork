@@ -8,7 +8,7 @@
 
 import Foundation
 
-enum LiteNetworkError: Error {
+public enum LiteNetworkError: Error {
     case NoResponse
     case NoResponseData
     case NoDataReadFormStream
@@ -16,7 +16,7 @@ enum LiteNetworkError: Error {
 
 
 extension LiteNetworkError: CustomStringConvertible {
-    var description: String {
+    public var description: String {
         switch self {
         case .NoResponse:
             return "没有响应体"
@@ -29,7 +29,7 @@ extension LiteNetworkError: CustomStringConvertible {
 }
 
 extension LiteNetworkError: LocalizedError {
-    var localizedDescription: String {
+    public var localizedDescription: String {
         self.description
     }
 }

@@ -8,22 +8,22 @@
 
 import Foundation
 
-final class LiteNetwork: NSObject {
+public final class LiteNetwork: NSObject {
     
-    typealias MakeDataRequest = () -> URLRequest
-    typealias MakeDownloadRequest = () -> URLRequest
-    typealias MakeUploadStreamRequest = () -> URLRequest
-    typealias MakeRedirect = (HTTPURLResponse, URLRequest) -> URLRequest?
-    typealias ProcessData = (URLResponse, Data?) -> ()
-    typealias ProcessError = (Error) -> ()
-    typealias ProcessProgress = (_ now: Int64, _ total: Int64) -> ()
-    typealias ProcessDownloadFile = (URL) -> ()
-    typealias ProcessRequestSuccess = (URLResponse) -> ()
-    typealias AnalyzeRequest = (URLSessionTaskMetrics) -> ()
-    typealias ProduceNewStream = () -> InputStream?
-    typealias MakeUploadFileRequest = () -> (request: URLRequest, path: URL)
-    typealias MakeUploadDataRequest = () -> (request: URLRequest, data: Data)
-    typealias ProcessAuthenticationChallenge = (URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
+    public typealias MakeDataRequest = () -> URLRequest
+    public typealias MakeDownloadRequest = () -> URLRequest
+    public typealias MakeUploadStreamRequest = () -> URLRequest
+    public typealias MakeRedirect = (HTTPURLResponse, URLRequest) -> URLRequest?
+    public typealias ProcessData = (URLResponse, Data?) -> ()
+    public typealias ProcessError = (Error) -> ()
+    public typealias ProcessProgress = (_ now: Int64, _ total: Int64) -> ()
+    public typealias ProcessDownloadFile = (URL) -> ()
+    public typealias ProcessRequestSuccess = (URLResponse) -> ()
+    public typealias AnalyzeRequest = (URLSessionTaskMetrics) -> ()
+    public typealias ProduceNewStream = () -> InputStream?
+    public typealias MakeUploadFileRequest = () -> (request: URLRequest, path: URL)
+    public typealias MakeUploadDataRequest = () -> (request: URLRequest, data: Data)
+    public typealias ProcessAuthenticationChallenge = (URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
     
     private var makeRequestSemaphore = DispatchSemaphore(value: 0)
     
@@ -80,7 +80,7 @@ extension LiteNetwork: URLSessionDelegate {
     ///   - session: 包含需要进行身份请求的task的session
     ///   - challenge: 包含身份请求验证的对象
     ///   - completionHandler: 调用的处理方式
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         guard let handlerBlock = sourceBagsManager.sessionAuthenticationChallenge else {
             completionHandler(.performDefaultHandling, nil)
             return
@@ -97,7 +97,7 @@ extension LiteNetwork: URLSessionTaskDelegate {
     ///   - task: 需要进行身份请求验证的task
     ///   - challenge: 包含身份请求验证的对象
     ///   - completionHandler: 调用的处理方式
-    func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID), let newAuthenticationChallenge = sourceBag.processAuthenticationChallenge else {
             completionHandler(.performDefaultHandling, nil)
@@ -112,7 +112,7 @@ extension LiteNetwork: URLSessionTaskDelegate {
     ///   - session: 包含完成数据传输task的session
     ///   - task: 完成数据传输的task
     ///   - error: 如果在传输过程中发生error，返回error；否则为NULL
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         var isRetry = false
         
         defer {
@@ -170,7 +170,7 @@ extension LiteNetwork: URLSessionTaskDelegate {
     ///   - response: 服务器对原始请求的相应对象
     ///   - request: 包含新地址的URL请求对象
     ///   - completionHandler: 回调处理
-    func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         let taskID = task.taskIdentifier
         guard let redirect = sourceBagsManager.getRedirectForSourceBag(for: taskID) else {
             completionHandler(nil)
@@ -187,7 +187,7 @@ extension LiteNetwork: URLSessionTaskDelegate {
     ///   - bytesSent: 自上次调用方法以来发送的字节数
     ///   - totalBytesSent: 到现在为止上传的字节数
     ///   - totalBytesExpectedToSend: 总共要发送的字节数
-    func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
             return
@@ -203,7 +203,7 @@ extension LiteNetwork: URLSessionTaskDelegate {
     ///   - session: 包含符合条件task的session
     ///   - task: 被收集指标的task
     ///   - metrics: 封装了 session  task的指标
-    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
             return
@@ -219,7 +219,7 @@ extension LiteNetwork: URLSessionTaskDelegate {
     ///   - session: 包含符合条件task的session
     ///   - task: 需要新的请求体的task
     ///   - completionHandler: 回调处理
-    func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
             completionHandler(nil)
@@ -241,7 +241,7 @@ extension LiteNetwork:  URLSessionDataDelegate {
     ///   - session: 包含符合条件task的session
     ///   - dataTask:提供数据的data task
     ///   - data: 包含已传输数据的数据对象
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         let taskID = dataTask.taskIdentifier
         sourceBagsManager.appendDataForSourceBag(for: taskID, data: data)
     }
@@ -252,7 +252,7 @@ extension LiteNetwork:  URLSessionDataDelegate {
     ///   - dataTask: 收到初始化回复的data task
     ///   - response: 包含了header的URL response
     ///   - completionHandler: 回调处理
-    func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
+    public func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         completionHandler(.allow)
     }
 }
@@ -263,7 +263,7 @@ extension LiteNetwork: URLSessionDownloadDelegate {
     ///   - session: 包含符合条件task的session
     ///   - downloadTask: 完成的下载任务
     ///   - location: 临时存储文件的URL
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
+    public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         let taskID = downloadTask.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
             return
@@ -281,7 +281,7 @@ extension LiteNetwork: URLSessionDownloadDelegate {
     ///   - bytesWritten: 自上次调用以来传输的字节数
     ///   - totalBytesWritten: 总共传输的字节数
     ///   - totalBytesExpectedToWrite: 预期传输的总字节数
-    func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
+    public func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         let taskID = downloadTask.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
             return
@@ -296,125 +296,125 @@ extension LiteNetwork: URLSessionDownloadDelegate {
 extension LiteNetwork {
     /// 创建数据请求
     /// - Parameter request: 返回URLRequest的闭包
-    func makeDataRequest(for request: @escaping MakeDataRequest) -> Self {
+    public func makeDataRequest(for request: @escaping MakeDataRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeDataRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
     ///创建下载请求
-    func makeDownloadRequest(for request: @escaping MakeDownloadRequest) -> Self {
+    public func makeDownloadRequest(for request: @escaping MakeDownloadRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeDownloadRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
     ///创建新的上传流
-    func makeNewUploadStream(for streamRequest: @escaping MakeUploadStreamRequest) -> Self {
+    public func makeNewUploadStream(for streamRequest: @escaping MakeUploadStreamRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeUploadStreamRequest: streamRequest)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
     /// 创建上传数据请求
-    func makeUploadDataRequest(for request: @escaping MakeUploadDataRequest) -> Self {
+    public func makeUploadDataRequest(for request: @escaping MakeUploadDataRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeUploadDataRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
     /// 创建上传文件请求
-    func makeUploadFileRequest(for request: @escaping MakeUploadFileRequest) -> Self {
+    public func makeUploadFileRequest(for request: @escaping MakeUploadFileRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeUploadFileRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
     /// 重试次数
-    func retry(count: Int) -> Self {
+    public func retry(count: Int) -> Self {
         sourceBagsManager.updateRequestRetryCountToTrail(for: count)
         return self
     }
     
     /// 全局重试次数
-    func globeRetry(count: Int) -> Self {
+    public func globeRetry(count: Int) -> Self {
         sourceBagsManager.updateGlobeRequestRetryCount(for: count)
         return self
     }
     
     /// task级别的鉴权处理
     /// - Parameter challenge: 身份验证
-    func processTaskAuthenticationChallenge(for challenge: @escaping ProcessAuthenticationChallenge) -> Self {
+    public func processTaskAuthenticationChallenge(for challenge: @escaping ProcessAuthenticationChallenge) -> Self {
         sourceBagsManager.updateProcessAuthenticationChallengeToTrail(for: challenge)
         return self
     }
     
     /// session级别的鉴权处理
     /// - Parameter challenge: 身份验证
-    func processSessionAuthenticationChallenge(for challenge: @escaping ProcessAuthenticationChallenge) -> Self {
+    public func processSessionAuthenticationChallenge(for challenge: @escaping ProcessAuthenticationChallenge) -> Self {
         sourceBagsManager.updateSessionProcessAuthenticationChallengeToTrail(for: challenge)
         return self
     }
     
-    func produceNewStream(for new: @escaping ProduceNewStream) -> Self {
+    public func produceNewStream(for new: @escaping ProduceNewStream) -> Self {
         sourceBagsManager.updateProduceNewStreamToTrail(for: new)
         return self
     }
     
-    func processData(for data: @escaping ProcessData) -> Self {
+    public func processData(for data: @escaping ProcessData) -> Self {
         sourceBagsManager.appendDataProcessToTrail(new: data)
         return self
     }
     
     
-    func makeRedirect(for redirect: @escaping MakeRedirect) -> Self {
+    public func makeRedirect(for redirect: @escaping MakeRedirect) -> Self {
         sourceBagsManager.updateRedirectToTrail(for: redirect)
         return self
     }
     
-    func makeGlobeRedirect(for redirect: @escaping MakeRedirect) -> Self {
+    public func makeGlobeRedirect(for redirect: @escaping MakeRedirect) -> Self {
         sourceBagsManager.updateGlobeRedirect(for: redirect)
         return self
     }
     
-    func processFailure(for failure: @escaping ProcessError) -> Self {
+    public func processFailure(for failure: @escaping ProcessError) -> Self {
         sourceBagsManager.updateProcessFailureToTrail(new: failure)
         return self
     }
     
-    func processGlobeFailure(for failure: @escaping ProcessError) -> Self {
+    public func processGlobeFailure(for failure: @escaping ProcessError) -> Self {
         sourceBagsManager.updateGlobeProcessFailureToTrail(new: failure)
         return self
     }
     
-    func processUploadProgress(for progress: @escaping ProcessProgress) -> Self {
+    public func processUploadProgress(for progress: @escaping ProcessProgress) -> Self {
         sourceBagsManager.updateUploadProcessProgressToTrail(new: progress)
         return self
     }
     
-    func processDownloadProgress(for progress: @escaping ProcessProgress) -> Self {
+    public func processDownloadProgress(for progress: @escaping ProcessProgress) -> Self {
         sourceBagsManager.updateDownloadProcessProgressToTrail(new: progress)
         return self
     }
     
-    func processDownloadFile(for processFile: @escaping ProcessDownloadFile) -> Self {
+    public func processDownloadFile(for processFile: @escaping ProcessDownloadFile) -> Self {
         sourceBagsManager.updateDownloadFileToTrail(new: processFile)
         return self
     }
     
-    func processRequestSuccess(for processRequestSuccess: @escaping ProcessRequestSuccess) -> Self {
+    public func processRequestSuccess(for processRequestSuccess: @escaping ProcessRequestSuccess) -> Self {
         sourceBagsManager.appendProcessRequestSuccessToTrail(new: processRequestSuccess)
         return self
     }
     
-    func analyzeRequest(for analyze: @escaping LiteNetwork.AnalyzeRequest) -> Self {
+    public func analyzeRequest(for analyze: @escaping LiteNetwork.AnalyzeRequest) -> Self {
         sourceBagsManager.updateAnalyzeRequestToTrail(for: analyze)
         return self
     }
     
     
     @discardableResult
-    func fire() -> LiteNetworkToken {
+    public func fire() -> LiteNetworkToken {
         let _ = self.session
         for sourceBag in sourceBagsManager.readSourceBags() {
             self.makeRequestSerialQueue.async {
@@ -534,42 +534,42 @@ extension LiteNetwork {
 }
 
 extension LiteNetwork {
-    func setDefaultConfigureType() -> Self {
+    public func setDefaultConfigureType() -> Self {
         configureManager.updateConfigureType(type: .Default)
         return self
     }
     
-    func setEphemeralConfigureType() -> Self {
+    public func setEphemeralConfigureType() -> Self {
         configureManager.updateConfigureType(type: .Ephemeral)
         return self
     }
     
-    func appendHttpAdditionalHeaders(dictionary: [AnyHashable: Any]) -> Self {
+    public func appendHttpAdditionalHeaders(dictionary: [AnyHashable: Any]) -> Self {
         configureManager.appendHttpAdditionalHeaders(dictionary: dictionary)
         return self
     }
     
-    func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
+    public func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForRequest(for: new)
         return self
     }
     
-    func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
+    public func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForRequest(for: new)
         return self
     }
     
-    func setHttpShouldSetCookies(for new: Bool) -> Self {
+    public func setHttpShouldSetCookies(for new: Bool) -> Self {
         configureManager.updateHttpShouldSetCookies(for: new)
         return self
     }
     
-    func setRequestCachePolicy(for new: NSURLRequest.CachePolicy) -> Self {
+    public func setRequestCachePolicy(for new: NSURLRequest.CachePolicy) -> Self {
         configureManager.updateRequestCachePolicy(for: new)
         return self
     }
     
-    func setHttpCookieAcceptPolicy(for new: HTTPCookie.AcceptPolicy) -> Self {
+    public func setHttpCookieAcceptPolicy(for new: HTTPCookie.AcceptPolicy) -> Self {
         configureManager.updateHttpCookieAcceptPolicy(for: new)
         return self
     }

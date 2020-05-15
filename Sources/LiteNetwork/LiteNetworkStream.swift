@@ -8,13 +8,13 @@
 
 import Foundation
 
-final class LiteNetworkStream: NSObject {
-    typealias ProcessAuthenticationChallenge = (URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
-    typealias DataCommunicateComplteteHandler = (Data?, Error?) -> ()
-    typealias WriteDataCompleteHandler = (Error?) -> ()
-    typealias ReadDataCompleteHandler = (Data?, Bool, Error?) -> ()
-    typealias StreamTaskCompleteHandler = (_ dueError: Bool, _ error: Error?) -> ()
-    typealias StreamCloseCompleteHandler = (_ dueError: Bool) -> ()
+public final class LiteNetworkStream: NSObject {
+    public typealias ProcessAuthenticationChallenge = (URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
+    public typealias DataCommunicateComplteteHandler = (Data?, Error?) -> ()
+    public typealias WriteDataCompleteHandler = (Error?) -> ()
+    public typealias ReadDataCompleteHandler = (Data?, Bool, Error?) -> ()
+    public typealias StreamTaskCompleteHandler = (_ dueError: Bool, _ error: Error?) -> ()
+    public typealias StreamCloseCompleteHandler = (_ dueError: Bool) -> ()
     
     private var configureManager = LiteNetworkConfigureManager()
     
@@ -73,19 +73,19 @@ final class LiteNetworkStream: NSObject {
 extension LiteNetworkStream {
     /// 更新session级别鉴权处理
     /// - Parameter authentication: 鉴权处理闭包，返回处理方法常量和认证证书
-    func updateSessionAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
+    public func updateSessionAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
         sessionAuthentication = authentication
         return self
     }
     
     /// 更新task级别鉴权处理
     /// - Parameter authentication: 鉴权处理闭包，返回处理方法常量和认证证书
-    func updateTaskAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
+    public func updateTaskAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
         taskAuthentication = authentication
         return self
     }
     
-    func updateStreamTaskComplete(for handler: @escaping StreamTaskCompleteHandler) -> Self {
+    public func updateStreamTaskComplete(for handler: @escaping StreamTaskCompleteHandler) -> Self {
         streamTaskComplete = handler
         return self
     }
@@ -94,34 +94,34 @@ extension LiteNetworkStream {
     /// - Parameters:
     ///   - host: 域名
     ///   - port: 端口
-    func makeStreamWith(host: String, port: Int) -> Self {
+    public func makeStreamWith(host: String, port: Int) -> Self {
         streamTask = session.streamTask(withHostName: host, port: port)
         return self
     }
     
     /// 通过给定的network Service建立流任务
     /// - Parameter netSever: network service
-    func makeStreamWith(netSever: NetService) -> Self {
+    public func makeStreamWith(netSever: NetService) -> Self {
         streamTask = session.streamTask(with: netSever)
         return self
     }
     
     /// 更新关闭读取流的操作
     /// - Parameter handler: 要进行的操作
-    func updateStreamReadCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
+    public func updateStreamReadCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
         streamReadCloseComplete = handler
         return self
     }
     
     /// 更新关闭写入流的操作
     /// - Parameter handler: 要进行的操作
-    func updateStreamWriteCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
+    public func updateStreamWriteCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
         streamWriteCloseComplete = handler
         return self
     }
     
     /// 启用安全连接
-    func startSecureConnect() -> LiteNetworkStreamToken {
+    public func startSecureConnect() -> LiteNetworkStreamToken {
         streamTask?.startSecureConnection()
         streamTask?.resume()
         
@@ -129,7 +129,7 @@ extension LiteNetworkStream {
     }
     
     /// 开始连接
-    func startConnect() -> LiteNetworkStreamToken {
+    public func startConnect() -> LiteNetworkStreamToken {
         streamTask?.resume()
         
         return streamToken
@@ -329,49 +329,49 @@ extension LiteNetworkStream {
 
 extension LiteNetworkStream {
     /// 设置默认初始化配置
-    func setDefaultConfigureType() -> Self {
+    public func setDefaultConfigureType() -> Self {
         configureManager.updateConfigureType(type: .Default)
         return self
     }
     
     /// 设置ephemeral初始化配置
-    func setEphemeralConfigureType() -> Self {
+    public func setEphemeralConfigureType() -> Self {
         configureManager.updateConfigureType(type: .Ephemeral)
         return self
     }
     
-    func appendHttpAdditionalHeaders(dictionary: [AnyHashable: Any]) -> Self {
+    public func appendHttpAdditionalHeaders(dictionary: [AnyHashable: Any]) -> Self {
         configureManager.appendHttpAdditionalHeaders(dictionary: dictionary)
         return self
     }
     
     /// 设置资源请求的允许超时间隔
     /// - Parameter new: 目标时长
-    func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
+    public func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForResource(for: new)
         return self
     }
     
     /// 设置等待其他数据时的允许超时间隔
     /// - Parameter new: 目标时长
-    func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
+    public func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForRequest(for: new)
         return self
     }
     
     /// 设置是否请求应包含cookie存储中的cookie
     /// - Parameter new: bool
-    func setHttpShouldSetCookies(for new: Bool) -> Self {
+    public func setHttpShouldSetCookies(for new: Bool) -> Self {
         configureManager.updateHttpShouldSetCookies(for: new)
         return self
     }
     
-    func setRequestCachePolicy(for new: NSURLRequest.CachePolicy) -> Self {
+    public func setRequestCachePolicy(for new: NSURLRequest.CachePolicy) -> Self {
         configureManager.updateRequestCachePolicy(for: new)
         return self
     }
     
-    func setHttpCookieAcceptPolicy(for new: HTTPCookie.AcceptPolicy) -> Self {
+    public func setHttpCookieAcceptPolicy(for new: HTTPCookie.AcceptPolicy) -> Self {
         configureManager.updateHttpCookieAcceptPolicy(for: new)
         return self
     }
@@ -383,7 +383,7 @@ extension LiteNetworkStream: URLSessionDelegate {
     ///   - session: 要进行身份认证的session
     ///   - challenge: 包含认证请求的对象
     ///   - completionHandler: 回调处理
-    func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    public func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         guard let authentication = sessionAuthentication else {
             completionHandler(.performDefaultHandling, nil)
             return
@@ -395,7 +395,7 @@ extension LiteNetworkStream: URLSessionDelegate {
 
 extension LiteNetworkStream: URLSessionTaskDelegate {
     /// task级别的鉴权处理
-    func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         guard let authentication = taskAuthentication else {
             completionHandler(.performDefaultHandling, nil)
             return
@@ -404,7 +404,7 @@ extension LiteNetworkStream: URLSessionTaskDelegate {
         completionHandler(authenticationChallenge.disposition, authenticationChallenge.credential)
     }
     
-    func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+    public func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         guard let handler = self.streamTaskComplete else {
             return
         }
@@ -414,14 +414,14 @@ extension LiteNetworkStream: URLSessionTaskDelegate {
 }
 
 extension LiteNetworkStream: URLSessionStreamDelegate {
-    func urlSession(_ session: URLSession, readClosedFor streamTask: URLSessionStreamTask) {
+    public func urlSession(_ session: URLSession, readClosedFor streamTask: URLSessionStreamTask) {
         guard let handler = self.streamReadCloseComplete else {
             return
         }
         handler(self.hasError)
     }
     
-    func urlSession(_ session: URLSession, writeClosedFor streamTask: URLSessionStreamTask) {
+    public func urlSession(_ session: URLSession, writeClosedFor streamTask: URLSessionStreamTask) {
         guard let handler = self.streamWriteCloseComplete else {
             return
         }

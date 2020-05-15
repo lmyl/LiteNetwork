@@ -16,11 +16,11 @@ protocol LiteNetworkTokenDelegate: class {
     func cancelSessionFinishCurrentTask()
 }
 
-final class LiteNetworkToken {
+public final class LiteNetworkToken {
     
     private weak var delegate: LiteNetworkTokenDelegate?
     
-    func cancelSessionRightWay() {
+    public func cancelSessionRightWay() {
         guard let delegate = delegate else {
             return
         }
@@ -28,7 +28,7 @@ final class LiteNetworkToken {
         self.delegate = nil
     }
     
-    func cancelSessionFinishCurrentTask() {
+    public func cancelSessionFinishCurrentTask() {
         guard let delegate = delegate else {
             return
         }

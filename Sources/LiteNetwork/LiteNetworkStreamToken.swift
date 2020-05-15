@@ -40,56 +40,56 @@ protocol LiteNetworkStreamTokenDelegate: LiteNetworkTokenDelegate {
     func closeReadStream()
 }
 
-final class LiteNetworkStreamToken {
+public final class LiteNetworkStreamToken {
     private weak var delegate: LiteNetworkStreamTokenDelegate?
     
     func setDelegate(delegate: LiteNetworkStreamTokenDelegate) {
         self.delegate = delegate
     }
     
-    func simpleCommunicateWithSever(input: Data, minLength: Int = 1, maxLength: Int = 2048, timeout: TimeInterval? = nil, completionHandler: @escaping LiteNetworkStream.DataCommunicateComplteteHandler) {
+    public func simpleCommunicateWithSever(input: Data, minLength: Int = 1, maxLength: Int = 2048, timeout: TimeInterval? = nil, completionHandler: @escaping LiteNetworkStream.DataCommunicateComplteteHandler) {
         guard let delegate = self.delegate else {
             return
         }
         delegate.simpleCommunicateWithSever(input: input, minLength: minLength, maxLength: maxLength, timeout: timeout, completionHandler: completionHandler)
     }
     
-    func writeData(input: Data, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler) {
+    public func writeData(input: Data, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler) {
         guard let delegate = self.delegate else {
             return
         }
         delegate.writeData(input: input, timeout: timeout, completionHandler: completionHandler)
     }
     
-    func readData(minLength: Int, maxLength: Int, timeout: TimeInterval?, completeHandler: @escaping LiteNetworkStream.ReadDataCompleteHandler) {
+    public func readData(minLength: Int, maxLength: Int, timeout: TimeInterval?, completeHandler: @escaping LiteNetworkStream.ReadDataCompleteHandler) {
         guard let delegate = self.delegate else {
             return
         }
         delegate.readData(minLength: minLength, maxLength: maxLength, timeout: timeout, completeHandler: completeHandler)
     }
     
-    func closeWriteStream() {
+    public func closeWriteStream() {
         guard let delegate = self.delegate else {
             return
         }
         delegate.closeWriteStream()
     }
     
-    func closeReadStream() {
+    public func closeReadStream() {
         guard let delegate = self.delegate else {
             return
         }
         delegate.closeReadStream()
     }
     
-    func cancelSessionFinishCurrentTask() {
+    public func cancelSessionFinishCurrentTask() {
         guard let delegate = self.delegate else {
             return
         }
         delegate.cancelSessionFinishCurrentTask()
     }
     
-    func cancelSessionRightWay() {
+    public func cancelSessionRightWay() {
         guard let delegate = self.delegate else {
             return
         }
