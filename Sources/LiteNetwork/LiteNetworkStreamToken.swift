@@ -87,6 +87,7 @@ public final class LiteNetworkStreamToken {
             return
         }
         delegate.cancelSessionFinishCurrentTask()
+        self.delegate = nil
     }
     
     public func cancelSessionRightWay() {
@@ -94,5 +95,6 @@ public final class LiteNetworkStreamToken {
             return
         }
         delegate.cancelSessionRightWay()
+        self.delegate = nil
     }
 }
