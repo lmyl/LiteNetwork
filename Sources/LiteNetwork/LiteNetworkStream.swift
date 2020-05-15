@@ -20,7 +20,7 @@ public final class LiteNetworkStream: NSObject {
     
 }
 
-extension LiteNetworkStream {
+public extension LiteNetworkStream {
     /// 更新session级别鉴权处理
     /// - Parameter authentication: 鉴权处理闭包，返回处理方法常量和认证证书
     func updateSessionAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
@@ -83,7 +83,7 @@ extension LiteNetworkStream {
 }
 
 
-extension LiteNetworkStream {
+public extension LiteNetworkStream {
     /// 设置默认初始化配置
     func setDefaultConfigureType() -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setDefaultConfigureType()
