@@ -10,61 +10,61 @@ import Foundation
 
 struct LiteNetworkSourceBag {
     
-    /// 创建数据任务请求
+    /// Create a data request
     var makeDataRequest: LiteNetwork.MakeDataRequest?
     
-    /// 创建重定向
+    /// Create redirect
     var makeRedirect: LiteNetwork.MakeRedirect?
     
-    /// 创建下载任务请求
+    /// Create a download request
     var makeDownloadRequest: LiteNetwork.MakeDownloadRequest?
     
-    /// 创建上传流任务请求
+    /// Create a upload stream request
     var makeUploadStreamRequest: LiteNetwork.MakeUploadStreamRequest?
     
-    /// 处理数据
+    /// Data handing methods
     var processData: [LiteNetwork.ProcessData] = []
     
-    /// 处理错误
+    /// Error handling methods
     var processError: LiteNetwork.ProcessError?
     
-    /// 应答数据
+    /// Response data of type `Data`
     var responseData: Data?
     
-    /// 获取taskID
+    /// `Int` ID of the request task
     var requestTaskID: Int?
     
-    /// task类型
+    /// the type of task
     var taskType: LiteNetworkTask
     
-    /// 资源包ID
+    /// `Int` ID of the sourdeBag
     var sourceBagIdentifier: Int?
     
-    /// 处理上传进程
+    /// Handle the progress of upload
     var processUploadProgress: LiteNetwork.ProcessProgress?
     
-    /// 处理下载进程
+    /// Handle the progress of download
     var processDownloadProgress: LiteNetwork.ProcessProgress?
     
-    /// 处理下载文件
+    /// Handle the download file
     var processDownloadFile: LiteNetwork.ProcessDownloadFile?
     
-    /// 处理请求成功
+    /// Handle `URLResponse`
     var processRequestSuccess: [LiteNetwork.ProcessRequestSuccess] = []
     
-    /// 分析request指标
+    /// Analyse `URLSessionTaskMetrics` of request
     var analyzeRequest: LiteNetwork.AnalyzeRequest?
     
-    /// 创建新的流
+    /// Create new stream
     var makeNewStream: LiteNetwork.ProduceNewStream?
     
-    /// 创建上传文件任务请求
+    /// Create upload file request
     var makeUploadFileRequest: LiteNetwork.MakeUploadFileRequest?
     
-    /// 创建上传数据任务请求
+    /// Create upload data request
     var makeUploadDataRequest: LiteNetwork.MakeUploadDataRequest?
     
-    /// 鉴权处理
+    /// Handle authentication challenge
     var processAuthenticationChallenge: LiteNetwork.ProcessAuthenticationChallenge?
     
     var retryCount: Int?

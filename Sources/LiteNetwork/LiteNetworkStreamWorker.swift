@@ -63,15 +63,13 @@ final class LiteNetworkStreamWorker: NSObject {
 }
 
 extension LiteNetworkStreamWorker {
-    /// 更新session级别鉴权处理
-    /// - Parameter authentication: 鉴权处理闭包，返回处理方法常量和认证证书
+    /// Update the session-wide authentication processing
     func updateSessionAuthentication(for authentication: @escaping LiteNetworkStream.ProcessAuthenticationChallenge) -> Self {
         sessionAuthentication = authentication
         return self
     }
     
-    /// 更新task级别鉴权处理
-    /// - Parameter authentication: 鉴权处理闭包，返回处理方法常量和认证证书
+    /// Update the task-specific authentication processing
     func updateTaskAuthentication(for authentication: @escaping LiteNetworkStream.ProcessAuthenticationChallenge) -> Self {
         taskAuthentication = authentication
         return self
@@ -82,37 +80,31 @@ extension LiteNetworkStreamWorker {
         return self
     }
     
-    /// 通过给定的域名和端口建立流任务
-    /// - Parameters:
-    ///   - host: 域名
-    ///   - port: 端口
+    /// Create a stream task with a given host and port
     func makeStreamWith(host: String, port: Int) -> Self {
         streamTask = session.streamTask(withHostName: host, port: port)
         return self
     }
     
-    /// 通过给定的network Service建立流任务
-    /// - Parameter netSever: network service
+    /// Create a stream task with a given network service
     func makeStreamWith(netSever: NetService) -> Self {
         streamTask = session.streamTask(with: netSever)
         return self
     }
     
-    /// 更新关闭读取流的操作
-    /// - Parameter handler: 要进行的操作
+    /// Update completion handler of closing read stream
     func updateStreamReadCloseComplete(handler: @escaping LiteNetworkStream.StreamCloseCompleteHandler) -> Self {
         streamReadCloseComplete = handler
         return self
     }
     
-    /// 更新关闭写入流的操作
-    /// - Parameter handler: 要进行的操作
+    /// Update completion handler of closing write stream
     func updateStreamWriteCloseComplete(handler: @escaping LiteNetworkStream.StreamCloseCompleteHandler) -> Self {
         streamWriteCloseComplete = handler
         return self
     }
     
-    /// 启用安全连接
+    /// trigger task withe secure connect
     func startSecureConnect() -> LiteNetworkStreamToken {
         streamTask?.startSecureConnection()
         streamTask?.resume()
@@ -120,17 +112,17 @@ extension LiteNetworkStreamWorker {
         return streamToken
     }
     
-    /// 开始连接
+    /// trigger task
     func startConnect() -> LiteNetworkStreamToken {
         streamTask?.resume()
         
         return streamToken
     }
     
-    /// 链式资源包进行与服务器的会话操作
-    /// - Parameter bag: 传入链式资源包
+    /// simple communication with server
+    /// - Parameter bag: instance of chain sourceBag
     private func simpleCommunicateWithSeverForSourceBag(for bag: LiteNetworkStreamChainSourceBag) {
-        // 如果初始化失败，移除该资源包，判断数组中的下一个链式资源包
+        // If the initialization fails, remove current chain sourceBag and judge the next in the arrangement
         guard let streamTask = streamTask, let operation = bag.communicateOperation else {
             chainSourceBagsManager.removeFirst()
             if let firstBag = chainSourceBagsManager.firstSourceBag() {
@@ -142,13 +134,13 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            if let error = error { // 出现错误时关闭读写流，提前返回
+            if let error = error { // Close the read and write stream when an error occurs and return directly
                 self.hasError = true
                 operation.completeHandler(nil, error)
                 self.chainSourceBagsManager.removeAll()
                 streamTask.closeRead()
                 streamTask.closeWrite()
-                self.session.invalidateAndCancel() // 取消所有未完成task，然后使session无效
+                self.session.invalidateAndCancel() // Cancel all tasks and invalidate the session
                 self.streamTask = nil
                 return
             }
@@ -186,8 +178,7 @@ extension LiteNetworkStreamWorker {
         })
     }
     
-    /// 链式资源包进行写入操作
-    /// - Parameter bag: 传入链式资源包
+    /// Write data operation of the chain sourceBag
     private func writeDataForSourceBag(for bag: LiteNetworkStreamChainSourceBag) {
         guard let streamTask = streamTask, let operation = bag.writeOperation else {
             chainSourceBagsManager.removeFirst()
@@ -219,8 +210,7 @@ extension LiteNetworkStreamWorker {
         })
     }
     
-    /// 链式资源包进行读取操作
-    /// - Parameter bag: 传入链式资源包
+    /// Read data operation of the chain sourceBag
     private func readDataForSourceBag(for bag: LiteNetworkStreamChainSourceBag) {
         guard let streamTask = streamTask, let operation = bag.readOperation else {
             chainSourceBagsManager.removeFirst()
@@ -264,7 +254,7 @@ extension LiteNetworkStreamWorker {
         })
     }
     
-    /// 关闭链式资源包的读操作
+    /// Close the read operation of the chain souceBag
     private func closeReadForSourceBag() {
         guard let streamTask = streamTask else {
             chainSourceBagsManager.removeFirst()
@@ -280,7 +270,7 @@ extension LiteNetworkStreamWorker {
         }
     }
     
-    /// 关闭链式资源包的写操作
+    /// Close the write operation of the chain sourceBag
     private func closeWriteForSourceBag() {
         guard let streamTask = streamTask else {
             chainSourceBagsManager.removeFirst()
@@ -296,8 +286,7 @@ extension LiteNetworkStreamWorker {
         }
     }
     
-    /// 判断链式资源包的操作类型，执行对应的操作
-    /// - Parameter bag: 要判断的链式资源包
+    /// Determine the operation type of the chain sourceBag and perfrom the coresponding operation
     private func executeChainSourceBag(for bag: LiteNetworkStreamChainSourceBag) {
         if !self.hasError {
             self.chainSourceBagsManager.removeAll()
@@ -319,13 +308,13 @@ extension LiteNetworkStreamWorker {
 }
 
 extension LiteNetworkStreamWorker {
-    /// 设置默认初始化配置
+    /// Set `Default` initial configuration
     func setDefaultConfigureType() -> Self {
         configureManager.updateConfigureType(type: .Default)
         return self
     }
     
-    /// 设置ephemeral初始化配置
+    /// Set `Ephemeral` initial configuration
     func setEphemeralConfigureType() -> Self {
         configureManager.updateConfigureType(type: .Ephemeral)
         return self
@@ -336,21 +325,21 @@ extension LiteNetworkStreamWorker {
         return self
     }
     
-    /// 设置资源请求的允许超时间隔
-    /// - Parameter new: 目标时长
+    /// Set allowable timeout interval for chain sourceBag
+    /// - Parameter new: Target time interval
     func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForResource(for: new)
         return self
     }
     
-    /// 设置等待其他数据时的允许超时间隔
-    /// - Parameter new: 目标时长
+    /// Set allowable timeout interval while waiting for request
+    /// - Parameter new: Target time interval
     func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
         configureManager.updateTimeoutIntervalForRequest(for: new)
         return self
     }
     
-    /// 设置是否请求应包含cookie存储中的cookie
+    /// Set whether the request should include cookie
     /// - Parameter new: bool
     func setHttpShouldSetCookies(for new: Bool) -> Self {
         configureManager.updateHttpShouldSetCookies(for: new)
@@ -369,11 +358,8 @@ extension LiteNetworkStreamWorker {
 }
 
 extension LiteNetworkStreamWorker: URLSessionDelegate {
-    /// session级别的鉴权处理
-    /// - Parameters:
-    ///   - session: 要进行身份认证的session
-    ///   - challenge: 包含认证请求的对象
-    ///   - completionHandler: 回调处理
+    
+    /// Requests credentials from the delegate in response to a session-level authentication request from the remote server.
     func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         guard let authentication = sessionAuthentication else {
             completionHandler(.performDefaultHandling, nil)
@@ -385,7 +371,7 @@ extension LiteNetworkStreamWorker: URLSessionDelegate {
 }
 
 extension LiteNetworkStreamWorker: URLSessionTaskDelegate {
-    /// task级别的鉴权处理
+    /// Requests credentials from the delegate in response to an authentication request from the remote server.
     func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         guard let authentication = taskAuthentication else {
             completionHandler(.performDefaultHandling, nil)

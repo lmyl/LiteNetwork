@@ -10,7 +10,7 @@ import Foundation
 
 
 final class LiteNetworkConfigureManager {
-    /// 配置类型
+    /// Defines the type of session configuration
     enum ConfigureType {
         case Default
         case Ephemeral
@@ -18,28 +18,31 @@ final class LiteNetworkConfigureManager {
     }
     
     private var configureType: ConfigureType = .Default
-    /// 随请求发送的其它标头的字典
+    /// Dictionary of other headers that send with request.
     private var httpAdditionalHeaders: [AnyHashable: Any] = [:]
     
-    /// 是否全权委托
+    /// A Boolean value that determines whether background tasks can be scheduled at the discretion of the system for optimal performance.
     private var isDiscretionary = false
-    /// 在传输完成之后是否应该恢复或者在后台启动应用
+    /// A Boolean value that indicates whether the app should be resumed or launched in the background when transfers finish.
     private var sessionSendsLaunchEvents = true
     
-    /// 资源请求允许的超时间隔
+    /// Allowed timeout interval for resource
     private var timeoutIntervalForResource: TimeInterval = 604_800
-    /// 等待其他数据时允许的超时间隔
+    /// Allowed timeout interval when waiting for request
     private var timeoutIntervalForRequest: TimeInterval = 60
     
+    /// A Boolean value that determines whether requests should contain cookies from the cookie store.
     private var httpShouldSetCookies = true
+    /// A policy constant that determines when cookies should be accepted.
     private var httpCookieAcceptPolicy = HTTPCookie.AcceptPolicy.onlyFromMainDocumentDomain
     
+    /// A predefined constant that determines when to return a response from the cache.
     private var requestCachePolicy = NSURLRequest.CachePolicy.useProtocolCachePolicy
 }
 
 
 extension LiteNetworkConfigureManager {
-    /// 获取新的session配置信息
+    /// get newest session configuration
     func getNewSessionConfigure() -> URLSessionConfiguration {
         let newConfigure: URLSessionConfiguration
         switch configureType {
@@ -68,14 +71,14 @@ extension LiteNetworkConfigureManager {
         return newConfigure
     }
     
-    /// 更新配置类型
-    /// - Parameter type: 目标类型
+    /// Update the type of configuration
+    /// - Parameter type: Target type
     func updateConfigureType(type: ConfigureType) {
         configureType = type
     }
     
-    /// 添加随请求发送的其它标头的字典
-    /// - Parameter dictionary: 要添加的标头字典
+    /// Append dictionary of other headers that send with request
+    /// - Parameter dictionary: The `Dictionary` needed to be added
     func appendHttpAdditionalHeaders(dictionary: [AnyHashable: Any]) {
         let newDictionary = httpAdditionalHeaders.merging(dictionary, uniquingKeysWith: {
             _, new in
@@ -84,44 +87,44 @@ extension LiteNetworkConfigureManager {
         httpAdditionalHeaders = newDictionary
     }
     
-    /// 更新是否全权委托
+    /// Update `isDiscretinary` attribute
     /// - Parameter new: Bool
     func updateIsDiscretionary(for new: Bool) {
         isDiscretionary = new
     }
     
-    /// 更新资源请求允许的超时间隔
-    /// - Parameter new: 目标时长
+    /// Update `timeoutIntervalForResource` attribute
+    /// - Parameter new: target time interval
     func updateTimeoutIntervalForResource(for new: TimeInterval) {
         timeoutIntervalForResource = new
     }
     
-    /// 更新等待其他数据时允许的超时间隔
-    /// - Parameter new: 目标时长
+    /// Update `timeoutIntervalForRequest` attribute
+    /// - Parameter new: target time interval
     func updateTimeoutIntervalForRequest(for new: TimeInterval) {
         timeoutIntervalForRequest = new
     }
     
-    /// 更新在传输完成之后是否应该恢复或者在后台启动应用
-    /// - Parameter new: Bool
+    /// Update whether the app should be resumed or launched in the background when transfers finish
+    /// - Parameter new: Boolean
     func updateSessionSendsLaunchEvents(for new: Bool) {
         sessionSendsLaunchEvents = new
     }
     
-    /// 更新是否请求应包含cookie存储中的cookie
-    /// - Parameter new: Bool
+    /// Update whether requests should contain cookies from the cookie store
+    /// - Parameter new: Boolean
     func updateHttpShouldSetCookies(for new: Bool) {
         httpShouldSetCookies = new
     }
     
-    /// 更新请求缓存政策
-    /// - Parameter new: 目标policy
+    /// Update the policy that determines when to return a response from the cache
+    /// - Parameter new: new policy
     func updateRequestCachePolicy(for new: NSURLRequest.CachePolicy) {
         requestCachePolicy = new
     }
     
-    /// 更新http cookie接受政策
-    /// - Parameter new: 目标policy
+    /// Update the policy that determines when cookies should be accepted
+    /// - Parameter new: new policy
     func updateHttpCookieAcceptPolicy(for new: HTTPCookie.AcceptPolicy) {
         httpCookieAcceptPolicy = new
     }

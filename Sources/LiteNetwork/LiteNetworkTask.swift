@@ -9,7 +9,7 @@
 import Foundation
 
 
-/// task的类型枚举
+/// Defines the type of LiteNetwork task
 enum LiteNetworkTask {
     case Data
     case UploadStream

@@ -9,10 +9,10 @@
 import Foundation
 
 protocol LiteNetworkTokenDelegate: class {
-    /// 立马关闭当前会话
+    /// cancel current session immediately
     func cancelSessionRightWay()
     
-    /// 在完成当前task之后关闭对话
+    /// cancel current session after finish current task
     func cancelSessionFinishCurrentTask()
 }
 

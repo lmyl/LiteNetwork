@@ -9,7 +9,7 @@
 import Foundation
 
 final class LiteNetworkStreamChainSourceBag {
-    /// 链式资源包类型
+    /// Defines the type of chain souceBag type
     enum ChainSourceBagType {
         case Read
         case Write
@@ -23,9 +23,9 @@ final class LiteNetworkStreamChainSourceBag {
     var readOperation: (min: Int, max: Int, timeout: TimeInterval, completeHandler: LiteNetworkStream.ReadDataCompleteHandler)?
     var communicateOperation: (input: Data, min: Int, max: Int, timeout: TimeInterval, completeHandler: LiteNetworkStream.DataCommunicateComplteteHandler)?
     
-    /// 写入操作初始化
+    /// Write data operation initialization
     /// - Parameters:
-    ///   - writeData: 要写入的数据
+    ///   - writeData: `Data` needed to be written
     ///   - timeout: 允许超时间隔
     ///   - completeHandler: 完成回调
     init(writeData: Data, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler) {
@@ -33,24 +33,24 @@ final class LiteNetworkStreamChainSourceBag {
         writeOperation = (writeData, timeout, completeHandler)
     }
     
-    /// 读取操作初始化
+    /// Read operation initialization
     /// - Parameters:
-    ///   - readMinLength: 读取数据的最短长度
-    ///   - maxLength: 读取数据的最大长度
-    ///   - timeout: 允许超时间隔
-    ///   - completeHandler: 完成回调
+    ///   - readMinLength: The minimum length of the read data
+    ///   - maxLength: Maximum length of the read data
+    ///   - timeout: Allowed timeout interval
+    ///   - completeHandler: complete Handler
     init(readMinLength: Int, maxLength: Int, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.ReadDataCompleteHandler) {
         type = .Read
         readOperation = (readMinLength, maxLength, timeout, completeHandler)
     }
     
-    /// 会话操作初始化
+    /// communication operation initialization
     /// - Parameters:
-    ///   - communicateData: 要进行会话的数据
-    ///   - minLength: 读取的最小长度
-    ///   - maxLength: 读取的最大长度
-    ///   - timeout: 允许超时间隔
-    ///   - completeHandler: 完成回调
+    ///   - communicateData: `Data`
+    ///   - minLength: The minimum length of data
+    ///   - maxLength: The maximum length of data
+    ///   - timeout: Allowed timeout interval
+    ///   - completeHandler: complete handler
     init(communicateData: Data, minLength: Int, maxLength: Int, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.DataCommunicateComplteteHandler) {
         type = .Communicate
         communicateOperation = (communicateData, minLength, maxLength, timeout, completeHandler)
