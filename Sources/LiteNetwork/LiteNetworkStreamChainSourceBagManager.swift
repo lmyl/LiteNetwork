@@ -20,7 +20,10 @@ extension LiteNetworkStreamChainSourceBagManager {
     func readSourceBags() -> [LiteNetworkStreamChainSourceBag] {
         var sourceBags: [LiteNetworkStreamChainSourceBag] = []
         rwQueue.sync {
-            [unowned self] in
+            [weak self] in
+            guard let `self` = self else {
+                return
+            }
             sourceBags =  self.sourceBags
         }
         return sourceBags
@@ -30,7 +33,10 @@ extension LiteNetworkStreamChainSourceBagManager {
     /// - Parameter sourceBags: array of  `LiteNetworkStreamChainSourceBag`
     func writeSourceBags(sourceBags: [LiteNetworkStreamChainSourceBag]) {
         rwQueue.async(flags: .barrier, execute: {
-            [unowned self] in
+            [weak self] in
+            guard let `self` = self else {
+                return
+            }
             self.sourceBags = sourceBags
         })
     }

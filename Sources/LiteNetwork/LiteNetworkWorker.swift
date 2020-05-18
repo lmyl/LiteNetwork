@@ -32,14 +32,20 @@ import Foundation
         get {
             var result = false
             self.cancelFlagRWQueue.sync {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 result = self.underlayIsCancel
             }
             return result
         }
         set(newValue) {
             self.cancelFlagRWQueue.async(flags: .barrier, execute: {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 self.underlayIsCancel = newValue
             })
         }

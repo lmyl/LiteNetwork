@@ -34,14 +34,20 @@ final class LiteNetworkStreamWorker: NSObject {
         get {
             var result = false
             self.cancelFlagRWQueue.sync {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 result = self.underlayIsCancel
             }
             return result
         }
         set(newValue) {
             self.cancelFlagRWQueue.async(flags: .barrier, execute: {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 self.underlayIsCancel = newValue
             })
         }
@@ -51,14 +57,20 @@ final class LiteNetworkStreamWorker: NSObject {
         get {
             var result = false
             self.writeCloseFlagRWQueue.sync {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 result = self.underlayWriteIsClose
             }
             return result
         }
         set(newValue) {
             self.writeCloseFlagRWQueue.async(flags: .barrier, execute: {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 self.underlayWriteIsClose = newValue
             })
         }
@@ -68,14 +80,20 @@ final class LiteNetworkStreamWorker: NSObject {
         get {
             var result = false
             self.readCloseFlagRWQueue.sync {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 result = self.underlayReadIsClose
             }
             return result
         }
         set(newValue) {
             self.readCloseFlagRWQueue.async(flags: .barrier, execute: {
-                [unowned self] in
+                [weak self] in
+                guard let `self` = self else {
+                    return
+                }
                 self.underlayReadIsClose = newValue
             })
         }
@@ -268,6 +286,7 @@ extension LiteNetworkStreamWorker {
             return
         }
         if !self.readIsClose {
+            self.readIsClose = true
             streamTask.closeRead()
         }
         self.chainSourceBagsManager.removeFirst()
@@ -286,6 +305,7 @@ extension LiteNetworkStreamWorker {
             return
         }
         if !self.writeIsClose {
+            self.writeIsClose = true
             streamTask.closeWrite()
         }
         self.chainSourceBagsManager.removeFirst()
@@ -318,9 +338,11 @@ extension LiteNetworkStreamWorker {
         self.isCancel = true
         chainSourceBagsManager.removeAll()
         if !self.writeIsClose {
+            self.writeIsClose = true
             streamTask?.closeWrite()
         }
         if !self.readIsClose {
+            self.readIsClose = true
             streamTask?.closeRead()
         }
         streamTask = nil
