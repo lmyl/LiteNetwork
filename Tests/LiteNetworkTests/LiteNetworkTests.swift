@@ -7,7 +7,7 @@ final class LiteNetworkTests: XCTestCase {
         // Use XCTAssert and related functions to verify your tests produce the correct
         // results.
         let expection = expectation(description: #function)
-        let token = LiteNetwork().makeDataRequest(for: {
+        LiteNetwork().makeDataRequest(for: {
             URLRequest(url: URL(string: "https://www.baidu.com")!)
             }).setRequestCachePolicy(for: .reloadIgnoringCacheData).processData(for: {
                 response, dataOrNil in

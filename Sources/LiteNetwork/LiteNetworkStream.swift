@@ -10,9 +10,9 @@ import Foundation
 
 public final class LiteNetworkStream {
     public typealias ProcessAuthenticationChallenge = (URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
-    public typealias DataCommunicateComplteteHandler = (Data?, Error?) -> ()
-    public typealias WriteDataCompleteHandler = (Error?) -> ()
-    public typealias ReadDataCompleteHandler = (Data?, Bool, Error?) -> ()
+    public typealias DataCommunicateComplteteHandler = (Data?, Error?) -> Bool
+    public typealias WriteDataCompleteHandler = (Error?) -> Bool
+    public typealias ReadDataCompleteHandler = (Data?, Bool, Error?) -> Bool
     public typealias StreamTaskCompleteHandler = (_ error: Error?) -> ()
     public typealias StreamCloseCompleteHandler = () -> ()
     

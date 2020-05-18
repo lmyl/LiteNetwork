@@ -173,10 +173,15 @@ extension LiteNetworkStreamWorker {
                 return
             }
             if let error = error {
-                operation.completeHandler(nil, error)
-                self.chainSourceBagsManager.removeFirst()
-                if let first = self.chainSourceBagsManager.firstSourceBag() {
-                    self.executeChainSourceBag(for: first)
+                let isStop = operation.completeHandler(nil, error)
+                if isStop {
+                    self.stopSessionPreprocess()
+                    self.session.invalidateAndCancel()
+                } else {
+                    self.chainSourceBagsManager.removeFirst()
+                    if let first = self.chainSourceBagsManager.firstSourceBag() {
+                        self.executeChainSourceBag(for: first)
+                    }
                 }
                 return
             }
@@ -185,10 +190,15 @@ extension LiteNetworkStreamWorker {
                 guard let `self` = self else {
                     return
                 }
-                operation.completeHandler(data, error)
-                self.chainSourceBagsManager.removeFirst()
-                if let first = self.chainSourceBagsManager.firstSourceBag() {
-                    self.executeChainSourceBag(for: first)
+                let isStop = operation.completeHandler(data, error)
+                if isStop {
+                    self.stopSessionPreprocess()
+                    self.session.invalidateAndCancel()
+                } else {
+                    self.chainSourceBagsManager.removeFirst()
+                    if let first = self.chainSourceBagsManager.firstSourceBag() {
+                        self.executeChainSourceBag(for: first)
+                    }
                 }
             })
         })
@@ -208,10 +218,15 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            operation.completeHandler(error)
-            self.chainSourceBagsManager.removeFirst()
-            if let first = self.chainSourceBagsManager.firstSourceBag() {
-                self.executeChainSourceBag(for: first)
+            let isStop = operation.completeHandler(error)
+            if isStop {
+                self.stopSessionPreprocess()
+                self.session.invalidateAndCancel()
+            } else {
+                self.chainSourceBagsManager.removeFirst()
+                if let first = self.chainSourceBagsManager.firstSourceBag() {
+                    self.executeChainSourceBag(for: first)
+                }
             }
         })
     }
@@ -230,10 +245,15 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            operation.completeHandler(data, eof, error)
-            self.chainSourceBagsManager.removeFirst()
-            if let first = self.chainSourceBagsManager.firstSourceBag() {
-                self.executeChainSourceBag(for: first)
+            let isStop = operation.completeHandler(data, eof, error)
+            if isStop {
+                self.stopSessionPreprocess()
+                self.session.invalidateAndCancel()
+            } else {
+                self.chainSourceBagsManager.removeFirst()
+                if let first = self.chainSourceBagsManager.firstSourceBag() {
+                    self.executeChainSourceBag(for: first)
+                }
             }
         })
     }
@@ -292,6 +312,18 @@ extension LiteNetworkStreamWorker {
         case .CloseRead:
             closeReadForSourceBag()
         }
+    }
+    
+    private func stopSessionPreprocess() {
+        self.isCancel = true
+        chainSourceBagsManager.removeAll()
+        if !self.writeIsClose {
+            streamTask?.closeWrite()
+        }
+        if !self.readIsClose {
+            streamTask?.closeRead()
+        }
+        streamTask = nil
     }
 }
 
@@ -372,8 +404,9 @@ extension LiteNetworkStreamWorker: URLSessionTaskDelegate {
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         defer {
             self.isCancel = true
-            self.session.invalidateAndCancel()
+            chainSourceBagsManager.removeAll()
             streamTask = nil
+            self.session.invalidateAndCancel()
         }
         guard let handler = self.streamTaskComplete else {
             return
@@ -402,29 +435,13 @@ extension LiteNetworkStreamWorker: URLSessionStreamDelegate {
 
 extension LiteNetworkStreamWorker: LiteNetworkStreamTokenDelegate {
     func cancelSessionRightWay() {
-        self.isCancel = true
-        chainSourceBagsManager.removeAll()
-        if !self.writeIsClose {
-            streamTask?.closeWrite()
-        }
-        if !self.readIsClose {
-            streamTask?.closeRead()
-        }
+        self.stopSessionPreprocess()
         session.invalidateAndCancel()
-        streamTask = nil
     }
     
     func cancelSessionFinishCurrentTask() {
-        self.isCancel = true
-        chainSourceBagsManager.removeAll()
-        if !self.writeIsClose {
-            streamTask?.closeWrite()
-        }
-        if !self.readIsClose {
-            streamTask?.closeRead()
-        }
+        self.stopSessionPreprocess()
         session.finishTasksAndInvalidate()
-        streamTask = nil
     }
     
     func simpleCommunicateWithSever(input: Data, minLength: Int = 1, maxLength: Int = 2048, timeout: TimeInterval? = nil, completionHandler: @escaping LiteNetworkStream.DataCommunicateComplteteHandler) {
