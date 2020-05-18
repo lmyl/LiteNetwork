@@ -15,7 +15,8 @@ final class LiteNetworkStreamChainSourceBagManager {
 }
 
 extension LiteNetworkStreamChainSourceBagManager {
-    /// 读取链式资源包数组
+    /// read source Bags
+    /// - Returns: array of `LiteNetworkStreamChainSourceBag`
     func readSourceBags() -> [LiteNetworkStreamChainSourceBag] {
         var sourceBags: [LiteNetworkStreamChainSourceBag] = []
         rwQueue.sync {
@@ -25,8 +26,8 @@ extension LiteNetworkStreamChainSourceBagManager {
         return sourceBags
     }
     
-    /// 写入链式资源包数组
-    /// - Parameter sourceBags: 链式资源包数组
+    /// write source Bags
+    /// - Parameter sourceBags: array of  `LiteNetworkStreamChainSourceBag`
     func writeSourceBags(sourceBags: [LiteNetworkStreamChainSourceBag]) {
         rwQueue.async(flags: .barrier, execute: {
             [unowned self] in
@@ -34,20 +35,20 @@ extension LiteNetworkStreamChainSourceBagManager {
         })
     }
     
-    /// 判断链式资源包数组是否为空
+    /// Whether the chain sourceBag array is empty
     func isEmpty() -> Bool {
         readSourceBags().count == 0
     }
     
-    /// 添加资源包
-    /// - Parameter sourceBag: 要添加的流数据链式资源包
+    /// Append chain sourceBag to the end of sourceBag array
+    /// - Parameter sourceBag: the chain sourceBag needed to be appended
     func append(sourceBag: LiteNetworkStreamChainSourceBag) {
         var sourceBags = readSourceBags()
         sourceBags.append(sourceBag)
         writeSourceBags(sourceBags: sourceBags)
     }
     
-    /// 移除第一个链式资源包
+    /// Remove the first chain sourceBag
     func removeFirst() {
         var sourceBags = readSourceBags()
         if sourceBags.isEmpty {
@@ -57,13 +58,13 @@ extension LiteNetworkStreamChainSourceBagManager {
         writeSourceBags(sourceBags: sourceBags)
     }
     
-    /// 移除当前所有链式资源包
+    /// Remove all current chain sourceBags
     func removeAll() {
         let sourceBags: [LiteNetworkStreamChainSourceBag] = []
         writeSourceBags(sourceBags: sourceBags)
     }
     
-    /// 获取第一个链式资源包
+    /// Get the first chain sourceBag
     func firstSourceBag() -> LiteNetworkStreamChainSourceBag? {
         let sourceBags = readSourceBags()
         if sourceBags.isEmpty {

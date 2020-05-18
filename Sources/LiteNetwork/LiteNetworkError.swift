@@ -8,6 +8,7 @@
 
 import Foundation
 
+/// Defines the type of error
 public enum LiteNetworkError: Error {
     case NoResponse
     case NoResponseData

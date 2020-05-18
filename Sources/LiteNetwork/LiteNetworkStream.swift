@@ -22,61 +22,64 @@ public final class LiteNetworkStream {
 }
 
 public extension LiteNetworkStream {
-    /// 更新session级别鉴权处理
-    /// - Parameter authentication: 鉴权处理闭包，返回处理方法常量和认证证书
+    /// Update the session-wide authentication processing
+    /// - Parameter authentication: `(URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)`
     func updateSessionAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateSessionAuthentication(for: authentication)
         return self
     }
     
-    /// 更新task级别鉴权处理
-    /// - Parameter authentication: 鉴权处理闭包，返回处理方法常量和认证证书
+    /// Update the task-specific authentication processing
+    /// - Parameter authentication: a closure that handle `URLAuthenticationChallenge`
     func updateTaskAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateTaskAuthentication(for: authentication)
         return self
     }
     
+    /// Update the completion handle of the stream task
+    /// - Parameter handler: replacement completion handle
+    /// - Returns: `Self`
     func updateStreamTaskComplete(for handler: @escaping StreamTaskCompleteHandler) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateStreamTaskComplete(for: handler)
         return self
     }
     
-    /// 通过给定的域名和端口建立流任务
+    /// Create a stream task with given host and port
     /// - Parameters:
-    ///   - host: 域名
-    ///   - port: 端口
+    ///   - host: `String`
+    ///   - port: `Int`
     func makeStreamWith(host: String, port: Int) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.makeStreamWith(host: host, port: port)
         return self
     }
     
-    /// 通过给定的network Service建立流任务
+    /// Create a stream task with a given network service
     /// - Parameter netSever: network service
     func makeStreamWith(netSever: NetService) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.makeStreamWith(netSever: netSever)
         return self
     }
     
-    /// 更新关闭读取流的操作
-    /// - Parameter handler: 要进行的操作
+    /// Update completion handler of closing read stream
+    /// - Parameter handler: replacement completion handler
     func updateStreamReadCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateStreamReadCloseComplete(handler: handler)
         return self
     }
     
-    /// 更新关闭写入流的操作
-    /// - Parameter handler: 要进行的操作
+    /// Update completion handler of closing write stream
+    /// - Parameter handler: replacement completion handler
     func updateStreamWriteCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateStreamWriteCloseComplete(handler: handler)
         return self
     }
     
-    /// 启用安全连接
+    /// trigger the chain sourceBag with secure connect
     func startSecureConnect() -> LiteNetworkStreamToken {
         self.liteNetworkStreamWorker.startSecureConnect()
     }
     
-    /// 开始连接
+    /// trigger chain sourceBag withe normal connect
     func startConnect() -> LiteNetworkStreamToken {
         self.liteNetworkStreamWorker.startConnect()
     }
@@ -85,49 +88,52 @@ public extension LiteNetworkStream {
 
 
 public extension LiteNetworkStream {
-    /// 设置默认初始化配置
+    /// Set `Defaule` initial configuration type
     func setDefaultConfigureType() -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setDefaultConfigureType()
         return self
     }
     
-    /// 设置ephemeral初始化配置
+    /// Set `Ephmeral` initial configyration type
     func setEphemeralConfigureType() -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setEphemeralConfigureType()
         return self
     }
     
+    /// Append dictionary of other headers that send with request
     func appendHttpAdditionalHeaders(dictionary: [AnyHashable: Any]) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.appendHttpAdditionalHeaders(dictionary: dictionary)
         return self
     }
     
-    /// 设置资源请求的允许超时间隔
-    /// - Parameter new: 目标时长
+    /// Set allowable timeout interval for chain sourceBag
+    /// - Parameter new: target time interval
     func setTimeoutIntervalForResource(for new: TimeInterval) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setTimeoutIntervalForResource(for: new)
         return self
     }
     
-    /// 设置等待其他数据时的允许超时间隔
-    /// - Parameter new: 目标时长
+    /// Set allowable timeout interval while waiting for request
+    /// - Parameter new: target time interval
     func setTimeoutIntervalForRequest(for new: TimeInterval) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setTimeoutIntervalForRequest(for: new)
         return self
     }
     
-    /// 设置是否请求应包含cookie存储中的cookie
+    /// Set whether the request should include cookie
     /// - Parameter new: bool
     func setHttpShouldSetCookies(for new: Bool) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setHttpShouldSetCookies(for: new)
         return self
     }
     
+    /// Set the policy that determines when to return a response from the cache
     func setRequestCachePolicy(for new: NSURLRequest.CachePolicy) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setRequestCachePolicy(for: new)
         return self
     }
     
+    /// Set the policy that determines when cookies should be accepted
     func setHttpCookieAcceptPolicy(for new: HTTPCookie.AcceptPolicy) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.setHttpCookieAcceptPolicy(for: new)
         return self

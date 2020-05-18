@@ -25,8 +25,8 @@ final class LiteNetworkSourceBagManager {
 
 extension LiteNetworkSourceBagManager {
     
-    /// 读取资源包
-    /// - Returns: 资源包的结构体数组
+    /// Read source Bag
+    /// - Returns: `Array` of LiteNetworkSourceBag struct
     func readSourceBags() -> [LiteNetworkSourceBag] {
         var sourceBags: [LiteNetworkSourceBag] = []
         rwQueue.sync(execute: {
@@ -36,6 +36,8 @@ extension LiteNetworkSourceBagManager {
         return sourceBags
     }
     
+    /// Write source Bag
+    /// - Parameter sourceBags: `Array` of LiteNetworkSourceBag struct
     func writeSourceBag(sourceBags: [LiteNetworkSourceBag]) {
         rwQueue.async(flags: .barrier, execute: {
             [unowned self] in
@@ -43,8 +45,8 @@ extension LiteNetworkSourceBagManager {
         })
     }
     
-    /// 添加新的资源包到结构体数组中
-    /// - Parameter sourceBag: 资源包
+    /// Add new sourceBag into the `Array`
+    /// - Parameter sourceBag: the sourceBag that
     func push(new sourceBag: LiteNetworkSourceBag) {
         var newSourceBag = sourceBag
         var sourceBags = readSourceBags()
@@ -53,18 +55,18 @@ extension LiteNetworkSourceBagManager {
         writeSourceBag(sourceBags: sourceBags)
     }
     
-    /// 资源包数组是否为空
+    /// Whether the sourceBag array is empty
     func isEmpty() -> Bool {
         return readSourceBags().count == 0
     }
     
-    /// 获得最后一个资源包（最新添加的）
+    /// Get the newest sourceBag ( also the last in the sourceBag array )
     func getTrailSourceBag() -> LiteNetworkSourceBag? {
         return readSourceBags().last
     }
     
-    /// 更新最后一个资源包
-    /// - Parameter sourceBag: 用于更新的资源包
+    /// Update the last sourceBag
+    /// - Parameter sourceBag: Replacement sourceBag
     func setTrailSourceBag(for sourceBag: LiteNetworkSourceBag) {
         guard !isEmpty() else {
             return
@@ -75,8 +77,8 @@ extension LiteNetworkSourceBagManager {
         writeSourceBag(sourceBags: sourceBags)
     }
     
-    /// 获取特定taskID的资源包
-    /// - Parameter taskID: 要获取资源包的taskID
+    /// Get the sourceBag with the specified task ID
+    /// - Parameter taskID: task ID of the specified sourceBag
     func getSourceBag(for taskID: Int) -> LiteNetworkSourceBag? {
         let sourceBags = readSourceBags()
         for sourceBag in sourceBags {
@@ -87,10 +89,10 @@ extension LiteNetworkSourceBagManager {
         return nil
     }
     
-    /// 更新特定taskID的资源包
+    /// Update the sourceBag with the specified task ID
     /// - Parameters:
-    ///   - sourceBag: 用于更新的资源包
-    ///   - taskID: 要更新的资源包的taskID
+    ///   - sourceBag: Replacement sourceBag
+    ///   - taskID: task ID of the sourceBag to update
     func setSourceBag(new sourceBag: LiteNetworkSourceBag, for taskID: Int) {
         var targetIndex: Int?
         var sourceBags = readSourceBags()
@@ -107,10 +109,10 @@ extension LiteNetworkSourceBagManager {
         writeSourceBag(sourceBags: sourceBags)
     }
     
-    /// 更新特定ID的资源包
+    /// Update the sourceBag with the specified ID
     /// - Parameters:
-    ///   - sourceBag: 用于更新的资源包
-    ///   - sourceBagIdentifier: 需要更新资源包的ID
+    ///   - sourceBag: Replacement sourceBag
+    ///   - sourceBagIdentifier: ID of the sourceBag to update
     func setSourceBag(new sourceBag: LiteNetworkSourceBag, sourceBagIdentifier: Int) {
         var targetIndex: Int?
         var sourceBags = readSourceBags()
@@ -127,8 +129,8 @@ extension LiteNetworkSourceBagManager {
         writeSourceBag(sourceBags: sourceBags)
     }
     
-    /// 移除指定taskID的资源包
-    /// - Parameter taskID: 指定taskID
+    /// Remove the sourceBag with the specified task ID
+    /// - Parameter taskID: specified task ID
     func removeSourceBag(for taskID: Int) {
         var targetIndex: Int?
         var sourceBags = readSourceBags()
@@ -145,15 +147,15 @@ extension LiteNetworkSourceBagManager {
         writeSourceBag(sourceBags: sourceBags)
     }
     
-    /// 移除现有的所有资源包
+    /// Remove all current sourceBags
     func removeAllSourceBag() {
         var sourceBags = readSourceBags()
         sourceBags.removeAll()
         writeSourceBag(sourceBags: sourceBags)
     }
     
-    /// 移除指定ID的资源包
-    /// - Parameter id: 指定资源包ID
+    /// Remove the sourceBag with the specified ID
+    /// - Parameter id: specified sourceBag ID
     func removeSourceBagForIdentifier(id: Int) {
         var targetIndex: Int?
         var sourceBags = readSourceBags()
@@ -170,8 +172,8 @@ extension LiteNetworkSourceBagManager {
         writeSourceBag(sourceBags: sourceBags)
     }
     
-    /// 为末尾的资源包添加处理数据
-    /// - Parameter processData: (URLResponse, Data) -> ()
+    /// Append data handling method to the last sourceBag
+    /// - Parameter processData: `(URLResponse, Data) -> ()`
     func appendDataProcessToTrail(new processData: @escaping LiteNetwork.ProcessData) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -180,8 +182,8 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 为末尾的资源包添加处理成功请求
-    /// - Parameter processRequestSuccess: (URLResponse) -> ()
+    /// Append request success handling method to the last sourceBag
+    /// - Parameter processRequestSuccess: `(URLResponse) -> ()`
     func appendProcessRequestSuccessToTrail(new processRequestSuccess: @escaping LiteNetwork.ProcessRequestSuccess) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -190,7 +192,7 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新末尾资源包的重定向数据
+    /// Update redirect information of the last sourceBag
     func updateRedirectToTrail(for redirect: @escaping LiteNetwork.MakeRedirect) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -199,13 +201,13 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新全局重定向
+    /// Update global redirect information
     func updateGlobeRedirect(for redirect: @escaping LiteNetwork.MakeRedirect) {
         globeRedirect = redirect
     }
     
-    /// 获得指定资源包的重定向数据
-    /// - Parameter taskID: 指定taskID
+    /// Get redirect information of  sourceBag with the specified task ID
+    /// - Parameter taskID: specified task ID
     func getRedirectForSourceBag(for taskID: Int) -> LiteNetwork.MakeRedirect? {
         if let sourceBag = getSourceBag(for: taskID), let redirect = sourceBag.makeRedirect {
             return redirect
@@ -214,8 +216,8 @@ extension LiteNetworkSourceBagManager {
         }
     }
     
-    /// 更新末尾资源包的数据处理方式
-    /// - Parameter failure: 目标错误处理
+    /// Update error handling method of the last sourceBag
+    /// - Parameter failure: replacement error handling method
     func updateProcessFailureToTrail(new failure: @escaping LiteNetwork.ProcessError) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -224,14 +226,15 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新全局错误处理方式
-    /// - Parameter failure: 目标错误处理
+    /// Update global error handling mehod
+    /// - Parameter failure: replacement error handling method
     func updateGlobeProcessFailureToTrail(new failure: @escaping LiteNetwork.ProcessError) {
         globeProcessError = failure
     }
     
-    /// 获得指定资源包的全局错误处理
-    /// - Parameter taskID: 指定taskID
+    /// Get error handling method of sourceBag with specified task ID
+    /// - Parameter taskID: specidied task ID
+    /// - Returns: if specified sourcebag exist and get error handling method successfully, return it. Else return global error handling method.
     func getProcessErrorForSourceBag(for taskID: Int) -> LiteNetwork.ProcessError? {
         if let sourceBag = getSourceBag(for: taskID), let processError = sourceBag.processError {
             return processError
@@ -240,10 +243,10 @@ extension LiteNetworkSourceBagManager {
         }
     }
     
-    /// 添加指定资源包的应答数据
+    /// Append respense data for sourceBag with specified task ID
     /// - Parameters:
-    ///   - taskID: 指定taskID
-    ///   - data: 要添加的数据
+    ///   - taskID: specified task ID
+    ///   - data: `Data` needed to be append
     func appendDataForSourceBag(for taskID: Int, data: Data) {
         guard var sourceBag = getSourceBag(for: taskID) else {
             return
@@ -257,7 +260,7 @@ extension LiteNetworkSourceBagManager {
         setSourceBag(new: sourceBag, for: taskID)
     }
     
-    /// 更新末尾资源包的上传进程
+    /// Update the upload process progress of the last sourceBag
     func updateUploadProcessProgressToTrail(new progress: @escaping LiteNetwork.ProcessProgress) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -266,7 +269,7 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新末尾资源包的下载进程
+    /// Update the download process progress of the last sourceBag
     func updateDownloadProcessProgressToTrail(new progress: @escaping LiteNetwork.ProcessProgress) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -275,8 +278,8 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新末尾资源包的下载文件
-    /// - Parameter processFile: 参数为目标URL的闭包
+    /// Update the download file `URL` of the last sourceBag
+    /// - Parameter processFile: a closure that accepts a `URL` parameter
     func updateDownloadFileToTrail(new processFile: @escaping LiteNetwork.ProcessDownloadFile) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -285,7 +288,8 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新末尾资源包的request指标
+    /// Update the request analyzing method of the last sourceBag
+    /// - Parameter analyze: `(URLSessionTaskMetrics) -> ()`
     func updateAnalyzeRequestToTrail(for analyze: @escaping LiteNetwork.AnalyzeRequest) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -294,7 +298,7 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新末尾资源包创建的流
+    /// Update stream created by the last sourceBag
     func updateProduceNewStreamToTrail(for new: @escaping LiteNetwork.ProduceNewStream) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -303,7 +307,7 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    ///更新末尾资源包的鉴权处理
+    /// Update the authentication challenge handing of the last sourceBag ( task-specified )
     func updateProcessAuthenticationChallengeToTrail(for challenge: @escaping LiteNetwork.ProcessAuthenticationChallenge) {
         guard var trailSourceBag = getTrailSourceBag() else {
             return
@@ -312,12 +316,12 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新末尾资源包的session级别鉴权处理
+    /// Update the authentication challenge handling of the last sourceBag ( session-wide )
     func updateSessionProcessAuthenticationChallengeToTrail(for challenge: @escaping LiteNetwork.ProcessAuthenticationChallenge) {
         sessionAuthenticationChallenge = challenge
     }
     
-    /// 更新末尾资源包的请求重试次数
+    /// Update the  request retry times of the last sourceBag
     func updateRequestRetryCountToTrail(for count: Int) {
         guard var trailSourceBag = getTrailSourceBag(), count > 0 else {
             return
@@ -326,7 +330,7 @@ extension LiteNetworkSourceBagManager {
         setTrailSourceBag(for: trailSourceBag)
     }
     
-    /// 更新全局请求重试次数
+    /// Update the global request retry times
     func updateGlobeRequestRetryCount(for count: Int) {
         guard count > 0 else {
             return
@@ -334,8 +338,8 @@ extension LiteNetworkSourceBagManager {
         self.globeRetryCount = count
     }
     
-    /// 获得指定资源包的重试次数
-    /// - Parameter taskID: 指定资源包的taskID
+    /// Get the retry times of the specified-taskID sourceBag
+    /// - Parameter taskID: specified task ID
     func getRetryCountForSourceBag(for taskID: Int) -> Int {
         if let sourceBag = getSourceBag(for: taskID) {
             if let count = sourceBag.retryCount {

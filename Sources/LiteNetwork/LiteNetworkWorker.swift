@@ -49,7 +49,7 @@ import Foundation
     
      override init() {
         let opQueue = OperationQueue()
-        opQueue.maxConcurrentOperationCount = 1 //设置并行操作数为1
+        opQueue.maxConcurrentOperationCount = 1 
         self.sessionTaskDelegateQueue = opQueue
         
         super.init()
@@ -60,11 +60,11 @@ import Foundation
 }
 
 extension LiteNetworkWorker: URLSessionDelegate {
-    /// 在需要处理session级别的身份请求认证时被调用
+    /// Event called when handle task-specific authentication challenges
     /// - Parameters:
-    ///   - session: 包含需要进行身份请求的task的session
-    ///   - challenge: 包含身份请求验证的对象
-    ///   - completionHandler: 调用的处理方式
+    ///   - session: The session containing the task that requested authentication.
+    ///   - challenge: An object that contains the request for authentication.
+    ///   - completionHandler: A handler that your delegate method must call.
      func urlSession(_ session: URLSession, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         guard let handlerBlock = sourceBagsManager.sessionAuthenticationChallenge else {
             completionHandler(.performDefaultHandling, nil)
@@ -76,12 +76,12 @@ extension LiteNetworkWorker: URLSessionDelegate {
 }
 
 extension LiteNetworkWorker: URLSessionTaskDelegate {
-    /// 在需要处理task级别的身份请求认证时被调用
+    /// Event called when handle task-level authentication challenges.
     /// - Parameters:
-    ///   - session: 包含需要进行身份请求验证task的session
-    ///   - task: 需要进行身份请求验证的task
-    ///   - challenge: 包含身份请求验证的对象
-    ///   - completionHandler: 调用的处理方式
+    ///   - session: The session containing the task that requested authentication.
+    ///   - task: task that requested authentication
+    ///   - challenge: An object that contains the request for authentication.
+    ///   - completionHandler: A handler that your delegate method must call.
      func urlSession(_ session: URLSession, task: URLSessionTask, didReceive challenge: URLAuthenticationChallenge, completionHandler: @escaping (URLSession.AuthChallengeDisposition, URLCredential?) -> Void) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID), let newAuthenticationChallenge = sourceBag.processAuthenticationChallenge else {
@@ -92,11 +92,11 @@ extension LiteNetworkWorker: URLSessionTaskDelegate {
         completionHandler(handler.disposition, handler.credential)
     }
     
-    ///在task完成数据传输之后被调用
+    /// Event called when task finished transferring data.
     /// - Parameters:
-    ///   - session: 包含完成数据传输task的session
-    ///   - task: 完成数据传输的task
-    ///   - error: 如果在传输过程中发生error，返回error；否则为NULL
+    ///   - session: The session containing the task whose request finished transferring data.
+    ///   - task: The task whose request finished transferring data.
+    ///   - error: If an error occurred, an error object indicating how the transfer failed, otherwise NULL.
      func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         var isRetry = false
         
@@ -148,13 +148,13 @@ extension LiteNetworkWorker: URLSessionTaskDelegate {
         }
     }
     
-    /// 告知远程服务器需要http重定向（只有在default会话和ephemeral会话中才会被调用，background会话自动追随重定向。
+    /// Tells the delegate that the remote server requested an HTTP redirect.
     /// - Parameters:
-    ///   - session: 包含导致重定向task的session
-    ///   - task: 请求导致重定向的task
-    ///   - response: 服务器对原始请求的相应对象
-    ///   - request: 包含新地址的URL请求对象
-    ///   - completionHandler: 回调处理
+    ///   - session: The session containing the task whose request resulted in a redirect.
+    ///   - task: The task whose request resulted in a redirect.
+    ///   - response: An object containing the server’s response to the original request.
+    ///   - request: A URL request object filled out with the new location.
+    ///   - completionHandler: A block that your handler should call with either the value of the request parameter, a modified URL request object, or NULL to refuse the redirect and return the body of the redirect response.
      func urlSession(_ session: URLSession, task: URLSessionTask, willPerformHTTPRedirection response: HTTPURLResponse, newRequest request: URLRequest, completionHandler: @escaping (URLRequest?) -> Void) {
         let taskID = task.taskIdentifier
         guard let redirect = sourceBagsManager.getRedirectForSourceBag(for: taskID) else {
@@ -165,13 +165,7 @@ extension LiteNetworkWorker: URLSessionTaskDelegate {
         completionHandler(newRequest)
     }
     
-    /// 上传文件定期调用，提供上传进度
-    /// - Parameters:
-    ///   - session: 包含data task的session
-    ///   - task: data task
-    ///   - bytesSent: 自上次调用方法以来发送的字节数
-    ///   - totalBytesSent: 到现在为止上传的字节数
-    ///   - totalBytesExpectedToSend: 总共要发送的字节数
+    /// Periodically informs the delegate of the progress of sending body content to the server.
      func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
@@ -183,11 +177,7 @@ extension LiteNetworkWorker: URLSessionTaskDelegate {
         processProgress(totalBytesSent, totalBytesExpectedToSend)
     }
     
-    /// 已完成task指标收集
-    /// - Parameters:
-    ///   - session: 包含符合条件task的session
-    ///   - task: 被收集指标的task
-    ///   - metrics: 封装了 session  task的指标
+    /// Tells the delegate that the session finished collecting metrics for the task.
      func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
@@ -199,11 +189,7 @@ extension LiteNetworkWorker: URLSessionTaskDelegate {
         analyzeRequest(metrics)
     }
     
-    /// 当task需要向服务器发送新的请求体时被调用
-    /// - Parameters:
-    ///   - session: 包含符合条件task的session
-    ///   - task: 需要新的请求体的task
-    ///   - completionHandler: 回调处理
+    /// Tells the delegate when a task requires a new request body stream to send to the remote server.
      func urlSession(_ session: URLSession, task: URLSessionTask, needNewBodyStream completionHandler: @escaping (InputStream?) -> Void) {
         let taskID = task.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
@@ -221,33 +207,22 @@ extension LiteNetworkWorker: URLSessionTaskDelegate {
 }
 
 extension LiteNetworkWorker:  URLSessionDataDelegate {
-    /// 收到部分预期数据
-    /// - Parameters:
-    ///   - session: 包含符合条件task的session
-    ///   - dataTask:提供数据的data task
-    ///   - data: 包含已传输数据的数据对象
+    
+    /// Tells the delegate that the data task has received some of the expected data.
      func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive data: Data) {
         let taskID = dataTask.taskIdentifier
         sourceBagsManager.appendDataForSourceBag(for: taskID, data: data)
     }
     
-    /// 收到服务器的初始回复之后调用，或支持复杂的 multipart / x-mixed-replace 内容类型
-    /// - Parameters:
-    ///   - session: 包含符合条件task的session
-    ///   - dataTask: 收到初始化回复的data task
-    ///   - response: 包含了header的URL response
-    ///   - completionHandler: 回调处理
+    /// Tells the delegate that the data task received the initial reply (headers) from the server.
      func urlSession(_ session: URLSession, dataTask: URLSessionDataTask, didReceive response: URLResponse, completionHandler: @escaping (URLSession.ResponseDisposition) -> Void) {
         completionHandler(.allow)
     }
 }
 
 extension LiteNetworkWorker: URLSessionDownloadDelegate {
-    /// 已完成下载任务
-    /// - Parameters:
-    ///   - session: 包含符合条件task的session
-    ///   - downloadTask: 完成的下载任务
-    ///   - location: 临时存储文件的URL
+    
+    /// Tells the delegate that a download task has finished downloading.
      func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didFinishDownloadingTo location: URL) {
         let taskID = downloadTask.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
@@ -259,13 +234,7 @@ extension LiteNetworkWorker: URLSessionDownloadDelegate {
         processFile(location)
     }
     
-    /// 下载文件定期调用，提供下载进度
-    /// - Parameters:
-    ///   - session: 包含download task的session
-    ///   - downloadTask: download task
-    ///   - bytesWritten: 自上次调用以来传输的字节数
-    ///   - totalBytesWritten: 总共传输的字节数
-    ///   - totalBytesExpectedToWrite: 预期传输的总字节数
+    /// Periodically informs the delegate about the download’s progress.
      func urlSession(_ session: URLSession, downloadTask: URLSessionDownloadTask, didWriteData bytesWritten: Int64, totalBytesWritten: Int64, totalBytesExpectedToWrite: Int64) {
         let taskID = downloadTask.taskIdentifier
         guard let sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {
@@ -279,63 +248,61 @@ extension LiteNetworkWorker: URLSessionDownloadDelegate {
 }
 
 extension LiteNetworkWorker {
-    /// 创建数据请求
-    /// - Parameter request: 返回URLRequest的闭包
+    /// Create a data request
+    /// - Parameter request: A closure that return a `URLRequest`
     func makeDataRequest(for request: @escaping LiteNetwork.MakeDataRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeDataRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
-    ///创建下载请求
+    /// Create a download request
     func makeDownloadRequest(for request: @escaping LiteNetwork.MakeDownloadRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeDownloadRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
-    ///创建新的上传流
+    /// create a new upload stream
     func makeNewUploadStream(for streamRequest: @escaping LiteNetwork.MakeUploadStreamRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeUploadStreamRequest: streamRequest)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
-    /// 创建上传数据请求
+    /// Create a upload data request
     func makeUploadDataRequest(for request: @escaping LiteNetwork.MakeUploadDataRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeUploadDataRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
-    /// 创建上传文件请求
+    /// Create a upload file request
     func makeUploadFileRequest(for request: @escaping LiteNetwork.MakeUploadFileRequest) -> Self {
         let sourceBag = LiteNetworkSourceBag(makeUploadFileRequest: request)
         sourceBagsManager.push(new: sourceBag)
         return self
     }
     
-    /// 重试次数
+    /// Allowed retry times
      func retry(count: Int) -> Self {
         sourceBagsManager.updateRequestRetryCountToTrail(for: count)
         return self
     }
     
-    /// 全局重试次数
+    /// Allowed gloabal retry times
      func globeRetry(count: Int) -> Self {
         sourceBagsManager.updateGlobeRequestRetryCount(for: count)
         return self
     }
     
-    /// task级别的鉴权处理
-    /// - Parameter challenge: 身份验证
+    /// Handle authentication challenge in task-specific
     func processTaskAuthenticationChallenge(for challenge: @escaping LiteNetwork.ProcessAuthenticationChallenge) -> Self {
         sourceBagsManager.updateProcessAuthenticationChallengeToTrail(for: challenge)
         return self
     }
     
-    /// session级别的鉴权处理
-    /// - Parameter challenge: 身份验证
+    /// Handle authentication challenge in session-wide
     func processSessionAuthenticationChallenge(for challenge: @escaping LiteNetwork.ProcessAuthenticationChallenge) -> Self {
         sourceBagsManager.updateSessionProcessAuthenticationChallengeToTrail(for: challenge)
         return self
@@ -416,8 +383,8 @@ extension LiteNetworkWorker {
         return sessionToken
     }
     
-    /// 触发资源包task
-    /// - Parameter sourceBag: 资源包实例
+    /// trigger task in sourceBag
+    /// - Parameter sourceBag: instance of `LiteNetworkSourceBag`
     private func fireSourceBag(sourceBag: LiteNetworkSourceBag) {
         guard let identifier = sourceBag.sourceBagIdentifier else {
             return
@@ -493,10 +460,10 @@ extension LiteNetworkWorker {
         }
     }
     
-    /// 在指定资源包task触发发生错误时尝试重新触发
+    /// Try to re-trugger when error occur in the specified task ID  resourceBag task trigger
     /// - Parameters:
-    ///   - taskID: 指定taskID
-    ///   - error: 产生的错误
+    ///   - taskID: specified task ID
+    ///   - error: occurred error
     private func isRetryWhenErrorFor(taskID: Int, error: Error) -> Bool {
         var isRetry = false
         guard var sourceBag = sourceBagsManager.getSourceBag(for: taskID) else {

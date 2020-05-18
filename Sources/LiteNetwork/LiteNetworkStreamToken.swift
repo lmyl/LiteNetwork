@@ -9,34 +9,34 @@
 import Foundation
 
 protocol LiteNetworkStreamTokenDelegate: LiteNetworkTokenDelegate {
-    /// 与服务器的简单通信
+    /// simple communicate with server
        /// - Parameters:
-       ///   - input: 要写入的数据
-       ///   - minLength: 传输的最短长度
-       ///   - maxLength: 传输的最长长度
-       ///   - timeout: 允许超时间隔
-       ///   - completionHandler: 完成回调
+       ///   - input: `Data` needed to be written
+       ///   - minLength: The minimum length of data
+       ///   - maxLength: The maximum length of data
+       ///   - timeout: Allowed time interval
+       ///   - completionHandler: completion handler
     func simpleCommunicateWithSever(input: Data, minLength: Int, maxLength: Int, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.DataCommunicateComplteteHandler)
     
-    /// 写入数据
+    /// write data operation
     /// - Parameters:
-    ///   - input: 要写入的数据
-    ///   - timeout: 允许超时间隔
-    ///   - completionHandler: 完成处理
+    ///   - input: `Data` needed to be written
+    ///   - timeout: Allowed time interval
+    ///   - completionHandler: completion handler
     func writeData(input: Data, timeout: TimeInterval?, completionHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler)
     
-    /// 读取数据
+    /// read data operation
     /// - Parameters:
-    ///   - minLength: 最短读取长度
-    ///   - maxLength: 最大读取长度
-    ///   - timeout: 允许超时间隔
-    ///   - completeHandler: 完成回调
+    ///   - minLength: The minimum length of data
+    ///   - maxLength: The maximum length of data
+    ///   - timeout: Allowed time interval
+    ///   - completeHandler: completion handler
     func readData(minLength: Int, maxLength: Int, timeout: TimeInterval?, completeHandler: @escaping LiteNetworkStream.ReadDataCompleteHandler)
     
-    /// 关闭写入流
+    /// close write stream
     func closeWriteStream()
     
-    /// 关闭读取流
+    /// close read stream
     func closeReadStream()
 }
 
