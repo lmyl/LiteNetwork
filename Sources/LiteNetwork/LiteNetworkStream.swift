@@ -8,16 +8,17 @@
 
 import Foundation
 
-public final class LiteNetworkStream: NSObject {
+public final class LiteNetworkStream {
     public typealias ProcessAuthenticationChallenge = (URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)
     public typealias DataCommunicateComplteteHandler = (Data?, Error?) -> ()
     public typealias WriteDataCompleteHandler = (Error?) -> ()
     public typealias ReadDataCompleteHandler = (Data?, Bool, Error?) -> ()
-    public typealias StreamTaskCompleteHandler = (_ dueError: Bool, _ error: Error?) -> ()
-    public typealias StreamCloseCompleteHandler = (_ dueError: Bool) -> ()
+    public typealias StreamTaskCompleteHandler = (_ error: Error?) -> ()
+    public typealias StreamCloseCompleteHandler = () -> ()
     
     private var liteNetworkStreamWorker = LiteNetworkStreamWorker()
     
+    public init() { }
 }
 
 public extension LiteNetworkStream {

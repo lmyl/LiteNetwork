@@ -27,6 +27,7 @@ import Foundation
     
     private var liteNetworkWorker = LiteNetworkWorker()
     
+    public init() { }
 }
 
 public extension LiteNetwork {

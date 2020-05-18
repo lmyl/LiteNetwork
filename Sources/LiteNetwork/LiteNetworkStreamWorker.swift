@@ -30,26 +30,64 @@ final class LiteNetworkStreamWorker: NSObject {
     
     private var chainSourceBagsManager = LiteNetworkStreamChainSourceBagManager()
     
-    private var hasError: Bool {
+    private var isCancel: Bool {
         get {
             var result = false
-            self.errorFlagRWQueue.sync {
+            self.cancelFlagRWQueue.sync {
                 [unowned self] in
-                result = self.underlayHasError
+                result = self.underlayIsCancel
             }
             return result
         }
         set(newValue) {
-            self.errorFlagRWQueue.async(flags: .barrier, execute: {
+            self.cancelFlagRWQueue.async(flags: .barrier, execute: {
                 [unowned self] in
-                self.underlayHasError = newValue
+                self.underlayIsCancel = newValue
             })
         }
     }
     
-    private var errorFlagRWQueue = DispatchQueue(label: "LiteNetworkStream.rwHasError.token.com", attributes: .concurrent)
+    private var writeIsClose: Bool {
+        get {
+            var result = false
+            self.writeCloseFlagRWQueue.sync {
+                [unowned self] in
+                result = self.underlayWriteIsClose
+            }
+            return result
+        }
+        set(newValue) {
+            self.writeCloseFlagRWQueue.async(flags: .barrier, execute: {
+                [unowned self] in
+                self.underlayWriteIsClose = newValue
+            })
+        }
+    }
     
-    private var underlayHasError = false
+    private var readIsClose: Bool {
+        get {
+            var result = false
+            self.readCloseFlagRWQueue.sync {
+                [unowned self] in
+                result = self.underlayReadIsClose
+            }
+            return result
+        }
+        set(newValue) {
+            self.readCloseFlagRWQueue.async(flags: .barrier, execute: {
+                [unowned self] in
+                self.underlayReadIsClose = newValue
+            })
+        }
+    }
+    
+    private var cancelFlagRWQueue = DispatchQueue(label: "LiteNetworkStream.rwisCancel.token.com", attributes: .concurrent)
+    private var writeCloseFlagRWQueue = DispatchQueue(label: "LiteNetworkStream.rwWriteIsClose.token.com", attributes: .concurrent)
+    private var readCloseFlagRWQueue = DispatchQueue(label: "LiteNetworkStream.rwReadIsClose.token.com", attributes: .concurrent)
+    
+    private var underlayIsCancel = false
+    private var underlayWriteIsClose = false
+    private var underlayReadIsClose = false
     
     override init() {
         let opQueue = OperationQueue()
@@ -142,14 +180,12 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            if let error = error { // 出现错误时关闭读写流，提前返回
-                self.hasError = true
+            if let error = error {
                 operation.completeHandler(nil, error)
-                self.chainSourceBagsManager.removeAll()
-                streamTask.closeRead()
-                streamTask.closeWrite()
-                self.session.invalidateAndCancel() // 取消所有未完成task，然后使session无效
-                self.streamTask = nil
+                self.chainSourceBagsManager.removeFirst()
+                if let first = self.chainSourceBagsManager.firstSourceBag() {
+                    self.executeChainSourceBag(for: first)
+                }
                 return
             }
             streamTask.readData(ofMinLength: operation.min, maxLength: operation.max, timeout: operation.timeout, completionHandler: {
@@ -157,30 +193,10 @@ extension LiteNetworkStreamWorker {
                 guard let `self` = self else {
                     return
                 }
-                if let error = error {
-                    self.hasError = true
-                    operation.completeHandler(nil, error)
-                    self.chainSourceBagsManager.removeAll()
-                    streamTask.closeRead()
-                    streamTask.closeWrite()
-                    self.session.invalidateAndCancel()
-                    self.streamTask = nil
-                    return
-                }
-                if let data = data {
-                    operation.completeHandler(data, nil)
-                    self.chainSourceBagsManager.removeFirst()
-                    if let first = self.chainSourceBagsManager.firstSourceBag() {
-                        self.executeChainSourceBag(for: first)
-                    }
-                } else {
-                    self.hasError = true
-                    operation.completeHandler(nil, LiteNetworkError.NoDataReadFormStream)
-                    self.chainSourceBagsManager.removeAll()
-                    streamTask.closeRead()
-                    streamTask.closeWrite()
-                    self.session.invalidateAndCancel()
-                    self.streamTask = nil
+                operation.completeHandler(data, error)
+                self.chainSourceBagsManager.removeFirst()
+                if let first = self.chainSourceBagsManager.firstSourceBag() {
+                    self.executeChainSourceBag(for: first)
                 }
             })
         })
@@ -201,17 +217,7 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            if let error = error {
-                self.hasError = true
-                operation.completeHandler(error)
-                self.chainSourceBagsManager.removeAll()
-                streamTask.closeRead()
-                streamTask.closeWrite()
-                self.session.invalidateAndCancel()
-                self.streamTask = nil
-                return
-            }
-            operation.completeHandler(nil)
+            operation.completeHandler(error)
             self.chainSourceBagsManager.removeFirst()
             if let first = self.chainSourceBagsManager.firstSourceBag() {
                 self.executeChainSourceBag(for: first)
@@ -234,33 +240,11 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            if let error = error {
-                self.hasError = true
-                operation.completeHandler(nil, eof, error)
-                self.chainSourceBagsManager.removeAll()
-                streamTask.closeRead()
-                streamTask.closeWrite()
-                self.session.invalidateAndCancel()
-                self.streamTask = nil
-                return
+            operation.completeHandler(data, eof, error)
+            self.chainSourceBagsManager.removeFirst()
+            if let first = self.chainSourceBagsManager.firstSourceBag() {
+                self.executeChainSourceBag(for: first)
             }
-            if let data = data {
-                operation.completeHandler(data, eof, nil)
-                self.chainSourceBagsManager.removeFirst()
-                if let first = self.chainSourceBagsManager.firstSourceBag() {
-                    self.executeChainSourceBag(for: first)
-                }
-            } else {
-                self.hasError = true
-                operation.completeHandler(nil, eof, LiteNetworkError.NoDataReadFormStream)
-                self.chainSourceBagsManager.removeAll()
-                streamTask.closeRead()
-                streamTask.closeWrite()
-                self.session.invalidateAndCancel()
-                self.streamTask = nil
-                return
-            }
-            
         })
     }
     
@@ -273,7 +257,9 @@ extension LiteNetworkStreamWorker {
             }
             return
         }
-        streamTask.closeRead()
+        if !self.readIsClose {
+            streamTask.closeRead()
+        }
         self.chainSourceBagsManager.removeFirst()
         if let first = self.chainSourceBagsManager.firstSourceBag() {
             self.executeChainSourceBag(for: first)
@@ -289,7 +275,9 @@ extension LiteNetworkStreamWorker {
             }
             return
         }
-        streamTask.closeWrite()
+        if !self.writeIsClose {
+            streamTask.closeWrite()
+        }
         self.chainSourceBagsManager.removeFirst()
         if let first = self.chainSourceBagsManager.firstSourceBag() {
             self.executeChainSourceBag(for: first)
@@ -299,7 +287,7 @@ extension LiteNetworkStreamWorker {
     /// 判断链式资源包的操作类型，执行对应的操作
     /// - Parameter bag: 要判断的链式资源包
     private func executeChainSourceBag(for bag: LiteNetworkStreamChainSourceBag) {
-        if !self.hasError {
+        if self.isCancel {
             self.chainSourceBagsManager.removeAll()
             return
         }
@@ -396,10 +384,15 @@ extension LiteNetworkStreamWorker: URLSessionTaskDelegate {
     }
     
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
+        defer {
+            self.isCancel = true
+            self.session.invalidateAndCancel()
+            streamTask = nil
+        }
         guard let handler = self.streamTaskComplete else {
             return
         }
-        handler(self.hasError, error)
+        handler(error)
     }
     
 }
@@ -409,31 +402,41 @@ extension LiteNetworkStreamWorker: URLSessionStreamDelegate {
         guard let handler = self.streamReadCloseComplete else {
             return
         }
-        handler(self.hasError)
+        handler()
     }
     
     func urlSession(_ session: URLSession, writeClosedFor streamTask: URLSessionStreamTask) {
         guard let handler = self.streamWriteCloseComplete else {
             return
         }
-        handler(self.hasError)
+        handler()
     }
     
 }
 
 extension LiteNetworkStreamWorker: LiteNetworkStreamTokenDelegate {
     func cancelSessionRightWay() {
+        self.isCancel = true
         chainSourceBagsManager.removeAll()
-        streamTask?.closeRead()
-        streamTask?.closeWrite()
+        if !self.writeIsClose {
+            streamTask?.closeWrite()
+        }
+        if !self.readIsClose {
+            streamTask?.closeRead()
+        }
         session.invalidateAndCancel()
         streamTask = nil
     }
     
     func cancelSessionFinishCurrentTask() {
+        self.isCancel = true
         chainSourceBagsManager.removeAll()
-        streamTask?.closeRead()
-        streamTask?.closeWrite()
+        if !self.writeIsClose {
+            streamTask?.closeWrite()
+        }
+        if !self.readIsClose {
+            streamTask?.closeRead()
+        }
         session.finishTasksAndInvalidate()
         streamTask = nil
     }
