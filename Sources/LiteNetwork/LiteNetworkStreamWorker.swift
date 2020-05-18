@@ -191,16 +191,9 @@ extension LiteNetworkStreamWorker {
                 return
             }
             if let error = error {
-                let isStop = operation.completeHandler(nil, error)
-                if isStop {
-                    self.stopSessionPreprocess()
-                    self.session.invalidateAndCancel()
-                } else {
-                    self.chainSourceBagsManager.removeFirst()
-                    if let first = self.chainSourceBagsManager.firstSourceBag() {
-                        self.executeChainSourceBag(for: first)
-                    }
-                }
+                _ = operation.completeHandler(nil, error)
+                self.stopSessionPreprocess()
+                self.session.invalidateAndCancel()
                 return
             }
             streamTask.readData(ofMinLength: operation.min, maxLength: operation.max, timeout: operation.timeout, completionHandler: {
@@ -208,7 +201,13 @@ extension LiteNetworkStreamWorker {
                 guard let `self` = self else {
                     return
                 }
-                let isStop = operation.completeHandler(data, error)
+                if let error = error {
+                    _ = operation.completeHandler(nil, error)
+                    self.stopSessionPreprocess()
+                    self.session.invalidateAndCancel()
+                    return
+                }
+                let isStop = operation.completeHandler(data, nil)
                 if isStop {
                     self.stopSessionPreprocess()
                     self.session.invalidateAndCancel()
@@ -236,7 +235,13 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            let isStop = operation.completeHandler(error)
+            if let error = error {
+                _ = operation.completeHandler(error)
+                self.stopSessionPreprocess()
+                self.session.invalidateAndCancel()
+                return
+            }
+            let isStop = operation.completeHandler(nil)
             if isStop {
                 self.stopSessionPreprocess()
                 self.session.invalidateAndCancel()
@@ -263,7 +268,13 @@ extension LiteNetworkStreamWorker {
             guard let `self` = self else {
                 return
             }
-            let isStop = operation.completeHandler(data, eof, error)
+            if let error = error {
+                _ = operation.completeHandler(nil, eof, error)
+                self.stopSessionPreprocess()
+                self.session.invalidateAndCancel()
+                return
+            }
+            let isStop = operation.completeHandler(data, eof, nil)
             if isStop {
                 self.stopSessionPreprocess()
                 self.session.invalidateAndCancel()
