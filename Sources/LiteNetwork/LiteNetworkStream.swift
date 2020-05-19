@@ -23,21 +23,26 @@ public final class LiteNetworkStream {
 
 public extension LiteNetworkStream {
     /// Update the session-wide authentication processing
-    /// - Parameter authentication: `(URLAuthenticationChallenge) -> (disposition: URLSession.AuthChallengeDisposition, credential: URLCredential?)`
+    /// - Parameter authentication:
+    ///  a closure that takes a `URLAuthenticationChallenge` parameter, and return disposition and credential
+    ///  to deal with the authentication challenge
+    /// - Returns: `Self`
     func updateSessionAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateSessionAuthentication(for: authentication)
         return self
     }
     
     /// Update the task-specific authentication processing
-    /// - Parameter authentication: a closure that handle `URLAuthenticationChallenge`
+    /// - Parameter authentication:
+    ///  a closure that takes a `URLAuthenticationChallenge` parameter, and return disposition and credential
+    ///  to deal with the authentication challenge
     func updateTaskAuthentication(for authentication: @escaping ProcessAuthenticationChallenge) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateTaskAuthentication(for: authentication)
         return self
     }
     
-    /// Update the completion handle of the stream task
-    /// - Parameter handler: replacement completion handle
+    /// Update the completion handler of the stream task
+    /// - Parameter handler: A handler that will be called when your stream task completed
     /// - Returns: `Self`
     func updateStreamTaskComplete(for handler: @escaping StreamTaskCompleteHandler) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateStreamTaskComplete(for: handler)
@@ -61,14 +66,14 @@ public extension LiteNetworkStream {
     }
     
     /// Update completion handler of closing read stream
-    /// - Parameter handler: replacement completion handler
+    /// - Parameter handler: A hander that will be called when your stream task's read closed
     func updateStreamReadCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateStreamReadCloseComplete(handler: handler)
         return self
     }
     
     /// Update completion handler of closing write stream
-    /// - Parameter handler: replacement completion handler
+    /// - Parameter handler: A hander that will be called when your stream task's write closed
     func updateStreamWriteCloseComplete(handler: @escaping StreamCloseCompleteHandler) -> Self {
         self.liteNetworkStreamWorker = self.liteNetworkStreamWorker.updateStreamWriteCloseComplete(handler: handler)
         return self

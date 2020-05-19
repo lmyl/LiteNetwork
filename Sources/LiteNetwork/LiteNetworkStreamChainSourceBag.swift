@@ -26,8 +26,8 @@ final class LiteNetworkStreamChainSourceBag {
     /// Write data operation initialization
     /// - Parameters:
     ///   - writeData: `Data` needed to be written
-    ///   - timeout: 允许超时间隔
-    ///   - completeHandler: 完成回调
+    ///   - timeout: A timeout for writing bytes.
+    ///   - completeHandler: The completion handler to call when all bytes are written, or an error occurs.
     init(writeData: Data, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.WriteDataCompleteHandler) {
         type = .Write
         writeOperation = (writeData, timeout, completeHandler)
@@ -37,8 +37,8 @@ final class LiteNetworkStreamChainSourceBag {
     /// - Parameters:
     ///   - readMinLength: The minimum length of the read data
     ///   - maxLength: Maximum length of the read data
-    ///   - timeout: Allowed timeout interval
-    ///   - completeHandler: complete Handler
+    ///   - timeout: A timeout for reading bytes.
+    ///   - completeHandler: The completion handler to call when all bytes are read, or an error occurs.
     init(readMinLength: Int, maxLength: Int, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.ReadDataCompleteHandler) {
         type = .Read
         readOperation = (readMinLength, maxLength, timeout, completeHandler)
@@ -50,7 +50,7 @@ final class LiteNetworkStreamChainSourceBag {
     ///   - minLength: The minimum length of data
     ///   - maxLength: The maximum length of data
     ///   - timeout: Allowed timeout interval
-    ///   - completeHandler: complete handler
+    ///   - completeHandler: The completion handler to call when all bytes are read and write, or an error occurs.
     init(communicateData: Data, minLength: Int, maxLength: Int, timeout: TimeInterval, completeHandler: @escaping LiteNetworkStream.DataCommunicateComplteteHandler) {
         type = .Communicate
         communicateOperation = (communicateData, minLength, maxLength, timeout, completeHandler)
