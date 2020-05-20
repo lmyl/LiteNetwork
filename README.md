@@ -11,7 +11,7 @@ LiteNetwork is a lightweight and powerful network request framework written in S
 
 
 ## Overview
-LiteNetwork is a lightweight network request framework based on the Apple native `URLSession` API. It uses chain-sourceBag management system to ensure the orderly execution of multiple tasks. You can easily and quickly change the configuration information, create and update tasks, perform unified management through the framework interface without caring about the underlying methods. The framework supports the creation and configuration of five tasks: data, download, uploadFile, uploadData and uploadStream. And provides a variety of custom interfaces.
+LiteNetwork is a lightweight network request framework based on the Apple native `URLSession` API. It uses chain-sourceBag management system to ensure the orderly execution of multiple tasks, which means you can use method chaining to call multiple requests, and the requests will be sent in the order of invocation. You can easily and quickly change the configuration information, create and update tasks, perform unified management through the framework interface without caring about the underlying methods. The framework supports the creation and configuration of five tasks: data, download, uploadFile, uploadData and uploadStream. And provides a variety of custom interfaces.
 
 ## Features
 - Handle URLSessionConfiguration and its update easily
