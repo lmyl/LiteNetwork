@@ -11,7 +11,7 @@ LiteNetwork is a lightweight and powerful network request framework written in S
 
 
 ## Overview
-LiteNetwork is a lightweight network request framework based on the Apple native `URLSession` API. You can easily and quickly change the configuration information, create and update tasks, perform unified management through the framework interface without caring about the underlying methods. The framework supports the creation and configuration of five tasks: data, download, uploadFile, uploadData and uploadStream. And provides a variety of custom interfaces.
+LiteNetwork is a lightweight network request framework based on the Apple native `URLSession` API. It uses chain-sourceBag management system to ensure the orderly execution of multiple tasks. You can easily and quickly change the configuration information, create and update tasks, perform unified management through the framework interface without caring about the underlying methods. The framework supports the creation and configuration of five tasks: data, download, uploadFile, uploadData and uploadStream. And provides a variety of custom interfaces.
 
 ## Features
 - Handle URLSessionConfiguration and its update easily
@@ -19,7 +19,7 @@ LiteNetwork is a lightweight network request framework based on the Apple native
 - Avoid inconveniently nested callbacks
 - Multi-tasks asynchronous operations
 - Unified tasks management
-- Invalid session after all tasks finished
+- Automatically invalidate session
 
 
 ## Requirements
@@ -81,8 +81,8 @@ token.readData(minLength: 1, maxLength: 1000, timeout: 30) { dataOrNil, eof, err
         
 // You can create multiple tasks in a row, just like this:
 token.writeData(input: input.data(using: .utf8)!, timeout: 30, completionHandler: {
-            errorrNil in
-            if let error = errorrNil {
+            errorOrNil in
+            if let error = errorOrNil {
                 print("Error: " + error.localizedDescription)
             } else {
                 print("Complete")
@@ -103,8 +103,8 @@ token.simpleCommunicateWithSever(input: input.data(using: .utf8)!) { dataOrNil, 
 
 5. **Notice if** 
 * you close the read and write stream manually
-* one operation occurs an `error`
-* one operation return `true`
+* one operation(`writeData()`, `readData()` or `simpleCommunicateWithSever()`) occurs an `error`
+* one operation(`writeData()`, `readData()` or `simpleCommunicateWithSever()`) return `true` in the completion handler
 
 then session will call `invalidateAndCancel()` and invalid itself automatically, the rest of operations will not be carried out.
 ```swift
@@ -159,15 +159,13 @@ let token2 = LiteNetwork()
             // second task
             .makeDataRequest(for: {
             return URLRequest(url: URL(string: "https://www.apple.com/cn/")!)
-            }).setRequestCachePolicy(for: .reloadIgnoringCacheData).processData(for: {
+            }).processData(for: {
                 response, dataOrNil in
                 if let data = dataOrNil, let string = String(data: data, encoding: .utf8) {
                     print(string)
                 }
-                expection.fulfill()
             }).processGlobeFailure(for: {
                 print("Error:" + $0.localizedDescription)
-                expection.fulfill()
             })
             // resume all
             .fire()
