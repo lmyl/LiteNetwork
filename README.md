@@ -35,6 +35,12 @@ Import the open source package to your project through the following operations:
 1. `Xcode` -> `File` -> `Swift Packages` -> `Add Package Dependcies`
 2. search `https://github.com/lmyl/LiteNetwork` and add it to your targets
 
+### CocoaPods
+
+To integrate LiteNetwork into your project using cocoaPods, specify it in your `Podfile`:
+```ruby
+pod 'LiteNetwork' 
+```
 
 ## Usage
 
