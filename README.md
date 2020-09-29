@@ -2,6 +2,8 @@
 
 LiteNetwork is a lightweight and powerful network request framework written in Swift.
 
+Chinese version of README -> [README_cn](https://github.com/lmyl/LiteNetwork/blob/master/README_cn.md)
+
 - [Overview](#overview)
 - [Feature](#features)
 - [Requirements](#requirements)
